@@ -3,8 +3,10 @@ export let selectedTicket = null;
 
 export let currentFilter = "All";
 export let currentSort = "Latest";
-
 export let searchQuery = "";
+
+export let currentPage = 1;
+export const itemsPerPage = 5;
 
 export function setTickets(loadedTickets) {
   tickets = loadedTickets;
@@ -56,4 +58,12 @@ export function setSort(sort) {
 
 export function setSearchQuery(query) {
   searchQuery = query.toLowerCase();
+}
+
+export function deleteTicket(id) {
+  tickets = tickets.filter(t => t.id !== id);
+}
+
+export function setPage(page) {
+  currentPage = page;
 }

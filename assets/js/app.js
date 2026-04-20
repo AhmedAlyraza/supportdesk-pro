@@ -6,7 +6,9 @@ import {
   initStatusEvents,
   initFilterEvents,
   initSortEvents,
-  initSearchEvents
+  initSearchEvents,
+  initDeleteEvents,
+  initPaginationEvents
 } from "./events.js";
 
 import {
@@ -45,6 +47,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Initial render
   renderTickets();
+
+  initDeleteEvents();
+  initPaginationEvents();
 
   // ✅ IMPORTANT FIX (default state)
   if (detailPanel && layout) {

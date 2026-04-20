@@ -3,11 +3,13 @@ import {
   selectedTicket,
   currentFilter,
   currentSort,
-  searchQuery
+  searchQuery,
+  currentPage,
+  itemsPerPage
 } from "./state.js";
 
 
-// ================= SIDEBAR =================
+// ================= SIDEBAR ================= //
 export function setActiveSidebar(item) {
   const sidebarItems = document.querySelectorAll(".sidebar_item");
 
@@ -46,6 +48,8 @@ export function closeModal(modal) {
 // ================= MAIN RENDER =================
 export function renderTickets() {
   const list = document.querySelector(".open-requests__list");
+  const pageInfo = document.getElementById("page-info");
+
   if (!list) return;
 
   list.innerHTML = "";
@@ -71,8 +75,24 @@ export function renderTickets() {
     filteredTickets.sort((a, b) => a.createdAt - b.createdAt);
   }
 
-  // ================= 4. RENDER =================
-  filteredTickets.forEach(ticket => {
+  // ================= 4. EMPTY STATE (FIXED POSITION) =================
+  if (filteredTickets.length === 0) {
+    list.innerHTML = `
+      <div class="empty-state">
+        <p>No tickets found</p>
+      </div>
+    `;
+    return;
+  }
+
+  // ================= 5. PAGINATION =================
+  const start = (currentPage - 1) * itemsPerPage;
+  const end = start + itemsPerPage;
+
+  const paginatedTickets = filteredTickets.slice(start, end);
+
+  // ================= 6. RENDER =================
+  paginatedTickets.forEach(ticket => {
     const item = document.createElement("div");
     item.className = "ticket-item";
     item.dataset.id = ticket.id;
@@ -84,7 +104,9 @@ export function renderTickets() {
     item.innerHTML = `
       <div class="ticket-item__top">
         <span>${ticket.id}</span>
-        <span class="badge">${ticket.status}</span>
+        <span class="badge ${ticket.status.replace(" ", "-").toLowerCase()}">
+          ${ticket.status}
+        </span>
       </div>
 
       <h3 class="ticket-title">${ticket.title}</h3>
@@ -93,6 +115,12 @@ export function renderTickets() {
 
     list.appendChild(item);
   });
+
+  // ================= 7. PAGE INFO =================
+  if (pageInfo) {
+    const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
+    pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+  }
 }
 
 

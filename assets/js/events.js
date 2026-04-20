@@ -2,11 +2,13 @@ import { sidebarNav, modal, openBtn, closeBtn, form, ticketList, closeDetailBtn,
 import { switchView, setActiveSidebar, openModal, closeModal } from "./ui.js";
 import { addTicket, setSelectedTicket, getTicketById } from "./state.js";
 import { renderTickets, renderTicketDetail } from "./ui.js";
-
 import { updateTicketStatus } from "./state.js";
-import { setFilter, setSort, setSearchQuery, tickets } from "./state.js";
-
+import { setFilter, setSort, setSearchQuery, deleteTicket, tickets } from "./state.js";
 import { saveTicketsToStorage } from "./storage.js";
+import { currentPage, setPage } from "./state.js";
+
+
+
 // ================= SIDEBAR =================
 export function initSidebarEvents() {
   if (!sidebarNav) return;
@@ -21,7 +23,6 @@ export function initSidebarEvents() {
     switchView(item.dataset.view);
   });
 }
-
 
 
 // ================= MODAL =================
@@ -81,6 +82,13 @@ export function initDetailEvents() {
 
   });
 
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      detailPanel.classList.add("hidden");
+      layout.classList.add("no-detail");
+    }
+  });
+
 }
 
 
@@ -98,6 +106,8 @@ export function initTicketEvents() {
     if (!ticket) return;
 
     setSelectedTicket(ticket);
+
+    renderTickets();
 
     // DO NOT re-render list here
     renderTicketDetail(ticket);
@@ -192,19 +202,119 @@ export function initSearchEvents() {
 
   if (!searchInput) return;
 
+  // 🔥 LIVE SEARCH
   searchInput.addEventListener("input", (e) => {
-    setSearchQuery(e.target.value);
+
+    const value = e.target.value;
+
+    setSearchQuery(value);
+
+    // 🔥 AUTO SWITCH TO TICKETS VIEW
+    if (value.trim() !== "") {
+      switchView("tickets");
+
+      const ticketNav = document.querySelector('[data-view="tickets"]');
+      if (ticketNav) {
+        setActiveSidebar(ticketNav);
+      }
+    }
+
     renderTickets();
   });
 
   // 🔥 ENTER KEY SUPPORT
   if (searchForm) {
     searchForm.addEventListener("submit", (e) => {
-      e.preventDefault(); // ❗ STOP PAGE RELOAD
+      e.preventDefault();
 
-      setSearchQuery(searchInput.value);
+      const value = searchInput.value;
+
+      setSearchQuery(value);
+
+      // 🔥 ALSO SWITCH VIEW ON ENTER
+      if (value.trim() !== "") {
+        switchView("tickets");
+
+        const ticketNav = document.querySelector('[data-view="tickets"]');
+        if (ticketNav) {
+          setActiveSidebar(ticketNav);
+        }
+      }
+
       renderTickets();
     });
   }
+
+}
+
+
+export function initDeleteEvents() {
+
+  const deleteBtn = document.getElementById("delete-ticket-btn");
+
+  if (!deleteBtn) {
+    console.error("Delete button not found");
+    return;
+  }
+
+  deleteBtn.addEventListener("click", () => {
+
+    const activeItem = document.querySelector(".ticket-item.active");
+
+    if (!activeItem) {
+      console.warn("No active ticket selected");
+      return;
+    }
+
+    const id = activeItem.dataset.id;
+
+    // remove from state
+    deleteTicket(id);
+
+    // save
+    saveTicketsToStorage(tickets);
+
+    // re-render list
+    renderTickets();
+
+    // handle selection
+    if (tickets.length > 0) {
+      setSelectedTicket(tickets[0]);
+      renderTicketDetail(tickets[0]);
+    } else {
+      setSelectedTicket(null);
+      document.querySelector(".ticket-detail").classList.add("hidden");
+    }
+
+  });
+}
+
+export function initPaginationEvents() {
+
+  const prevBtn = document.getElementById("prev-page");
+  const nextBtn = document.getElementById("next-page");
+
+  if (!prevBtn || !nextBtn) {
+    console.error("Pagination buttons NOT found");
+    return;
+  }
+
+  console.log("Pagination initialized"); // 🔥 DEBUG
+
+  prevBtn.addEventListener("click", () => {
+    console.log("Prev clicked");
+
+    if (currentPage > 1) {
+      setPage(currentPage - 1);
+      renderTickets();
+    }
+  });
+
+  nextBtn.addEventListener("click", () => {
+    console.log("Next clicked");
+
+    setPage(currentPage + 1);
+    renderTickets();
+  });
 
 }
