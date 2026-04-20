@@ -95,7 +95,7 @@ input {
   margin-bottom: var(--space-4);
 }
 
-.filter {
+.open-requests__filters .filter-btn {
   padding: 6px 12px;
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
@@ -107,9 +107,10 @@ input {
   cursor: pointer;
 }
 
-.filter.active {
-  background: var(--color-primary);
+.open-requests__filters .filter-btn.active {
+  background: var(--color-accent);
   color: white;
+  border: 1px solid var(--color-accent);
 }
 
 .ticket-item {
@@ -476,4 +477,23 @@ input {
   .btn-secondary {
     width: 100%;
   }
+}
+
+
+.ticket-detail__close {
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.ticket-detail__close:hover {
+  color: var(--color-text);
+}
+
+.ticket-item.active {
+  border: 1px solid var(--color-primary);
+  background: rgba(37, 99, 235, 0.1);
 }

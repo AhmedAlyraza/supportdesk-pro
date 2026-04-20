@@ -1,11 +1,55 @@
-import { initSidebarEvents } from "./events.js";
-import { initModalEvents } from "./events.js";
-import { renderTickets } from "./ui.js";
+import {
+  initSidebarEvents,
+  initModalEvents,
+  initTicketEvents,
+  initDetailEvents,
+  initStatusEvents,
+  initFilterEvents,
+  initSortEvents,
+  initSearchEvents
+} from "./events.js";
 
-initSidebarEvents();
-initModalEvents();
+import {
+  renderTickets,
+  renderTicketDetail
+} from "./ui.js";
 
+import {
+  detailPanel,
+  layout
+} from "./dom.js";
+
+import {
+  tickets,
+  setTickets,
+  setSelectedTicket
+} from "./state.js";
+
+import { loadTicketsFromStorage } from "./storage.js";
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Load saved tickets first
+  const storedTickets = loadTicketsFromStorage();
+  setTickets(storedTickets);
+  // Init all event systems
+  initSidebarEvents();
+  initModalEvents();
+  initTicketEvents();
+  initDetailEvents();
+
+  initStatusEvents();
+  initFilterEvents();
+
+  initSortEvents();
+  initSearchEvents();
+
+  // Initial render
   renderTickets();
+
+  // ✅ IMPORTANT FIX (default state)
+  if (detailPanel && layout) {
+    detailPanel.classList.add("hidden");
+    layout.classList.add("no-detail");
+  }
+
 });

@@ -344,3 +344,23 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+
+
+.dashboard-layout.no-detail {
+  grid-template-columns: 1fr;
+}
+.view { display: none; }
+.view.active { display: block; }
+
+.ticket-detail.hidden {
+  display: none;
+}
+
+.ticket-item {
+  cursor: pointer;
+  padding: 10px;
+  border: 1px solid #333;
+  margin-bottom: 10px;
+}
+

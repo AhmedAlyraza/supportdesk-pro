@@ -26,8 +26,9 @@
                 </div>
 
                 <div class="col topbar_right">
-                    <input type="search" class="search-input search-input-topbar" placeholder="Search tickets..." />
-                    <button class="btn btn--primary" id="new-ticket-btn">New Ticket</button>
+                    <form id="search-form">
+                        <input type="text" class="search-input" placeholder="Search tickets..." />
+                    </form> <button class="btn btn--primary" id="new-ticket-btn">New Ticket</button>
                 </div>
             </div>
         </div>
@@ -129,19 +130,19 @@
                             <div class="open-requests__header">
                                 <h2 class="open-requests__title">Open Requests</h2>
 
-                                <select class="select">
-                                    <option>Latest</option>
-                                    <option>Oldest</option>
+                                <select class="select" id="sort-select">
+                                    <option value="Latest">Latest</option>
+                                    <option value="Oldest">Oldest</option>
                                 </select>
                             </div>
 
                             <!-- FILTERS -->
                             <div class="open-requests__filters">
-                                <button class="filter active">All</button>
-                                <button class="filter">New</button>
-                                <button class="filter">In Progress</button>
-                                <button class="filter">Waiting</button>
-                                <button class="filter">Resolved</button>
+                                <button class="filter-btn active" data-filter="All">All</button>
+                                <button class="filter-btn" data-filter="New">New</button>
+                                <button class="filter-btn" data-filter="In Progress">In Progress</button>
+                                <button class="filter-btn" data-filter="Waiting">Waiting</button>
+                                <button class="filter-btn" data-filter="Resolved">Resolved</button>
                             </div>
 
                             <!-- LIST -->
@@ -169,49 +170,38 @@
 
                         <!-- RIGHT: TICKET DETAIL PANEL -->
                         <div class="ticket-detail">
-
-                            <!-- HEADER -->
                             <div class="ticket-detail__header">
                                 <h2>Ticket Detail</h2>
                                 <span class="ticket-detail__close">✕</span>
                             </div>
 
-                            <!-- BODY -->
                             <div class="ticket-detail__body">
-
-                                <!-- TICKET INFO -->
                                 <div class="ticket-info">
-                                    <p class="ticket-id">#SD-1024</p>
-                                    <h3 class="ticket-detail-title">
-                                        Login issue after password reset
+                                    <p id="detail-id" class="ticket-id">#SD-1024</p>
+                                    <h3 id="detail-title" class="ticket-detail-title">Login issue after password reset
                                     </h3>
-                                    <p class="ticket-meta">
-                                        Sarah Ahmed • Billing • 10 min ago
-                                    </p>
+                                    <p id="detail-meta" class="ticket-meta">Sarah Ahmed • Billing • 10 min ago</p>
                                 </div>
 
-                                <!-- STATUS -->
                                 <div class="ticket-section">
                                     <p class="section-label">Status</p>
-                                    <select class="select">
+                                    <select id="detail-status" class="select">
                                         <option>New</option>
                                         <option>In Progress</option>
+                                        <option>Waiting</option>
                                         <option>Resolved</option>
                                     </select>
                                 </div>
 
-                                <!-- ACTIVITY -->
                                 <div class="ticket-section">
                                     <p class="section-label">Activity</p>
-                                    <ul class="activity-list">
+                                    <ul id="detail-activity" class="activity-list">
                                         <li>Ticket created</li>
                                         <li>Priority marked urgent</li>
                                         <li>Assigned to Support Queue</li>
                                     </ul>
                                 </div>
-
                             </div>
-
                         </div>
                 </section>
 
