@@ -1,12 +1,11 @@
 import { sidebarNav, modal, openBtn, closeBtn, form, ticketList, closeDetailBtn, detailPanel, layout } from "./dom.js";
 import { switchView, setActiveSidebar, openModal, closeModal } from "./ui.js";
 import { addTicket, setSelectedTicket, getTicketById } from "./state.js";
-import { renderTickets, renderTicketDetail } from "./ui.js";
+import { renderTickets, renderTicketDetail, setActiveFilterButton} from "./ui.js";
 import { updateTicketStatus } from "./state.js";
 import { setFilter, setSort, setSearchQuery, deleteTicket, tickets } from "./state.js";
 import { saveTicketsToStorage } from "./storage.js";
 import { currentPage, setPage } from "./state.js";
-
 
 
 // ================= SIDEBAR =================
@@ -14,13 +13,31 @@ export function initSidebarEvents() {
   if (!sidebarNav) return;
 
   sidebarNav.addEventListener("click", (e) => {
+
     const item = e.target.closest(".sidebar_item");
     if (!item) return;
 
     e.preventDefault();
 
+    const view = item.dataset.view;
+
+    // ✅ highlight sidebar
     setActiveSidebar(item);
-    switchView(item.dataset.view);
+
+    // ✅ switch screen
+    switchView(view);
+
+    // 🔥 RESET SEARCH (THIS IS YOUR CODE)
+    setSearchQuery("");
+
+    const searchInput = document.querySelector(".search-input");
+    if (searchInput) {
+      searchInput.value = "";
+    }
+
+    // 🔥 re-render tickets clean
+    renderTickets();
+
   });
 }
 
@@ -60,6 +77,8 @@ export function initModalEvents() {
     // Show detail panel
     detailPanel.classList.remove("hidden");
     layout.classList.remove("no-detail");
+     
+    renderDashboardStats(tickets);
 
     closeModal(modal);
     form.reset();
@@ -141,6 +160,8 @@ export function initStatusEvents() {
     saveTicketsToStorage(tickets);
     // update UI
     renderTickets();
+
+    renderDashboardStats(tickets);
 
     const updatedTicket = getTicketById(ticketId);
     if (updatedTicket) {
@@ -248,6 +269,7 @@ export function initSearchEvents() {
 }
 
 
+
 export function initDeleteEvents() {
 
   const deleteBtn = document.getElementById("delete-ticket-btn");
@@ -276,6 +298,8 @@ export function initDeleteEvents() {
 
     // re-render list
     renderTickets();
+
+     renderDashboardStats(tickets);
 
     // handle selection
     if (tickets.length > 0) {
@@ -317,4 +341,28 @@ export function initPaginationEvents() {
     renderTickets();
   });
 
+}
+
+export function initDashboardCardEvents() {
+  const cards = document.querySelectorAll(".dashboard-card");
+
+  cards.forEach(card => {
+    card.addEventListener("click", () => {
+
+      const filter = card.dataset.filter;
+
+      // switch page
+      switchView("tickets");
+
+      // set filter
+      setFilter(filter);
+
+      // 🔥 UPDATE UI BUTTON
+      setActiveFilterButton(filter);
+
+      // render
+      renderTickets();
+
+    });
+  });
 }

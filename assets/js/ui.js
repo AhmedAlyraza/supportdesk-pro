@@ -8,6 +8,30 @@ import {
   itemsPerPage
 } from "./state.js";
 
+//  Dashboard Stats Renderer
+export function renderDashboardStats(tickets) {
+
+  const totalEl = document.getElementById("total-count");
+  const openEl = document.getElementById("open-count");
+  const progressEl = document.getElementById("progress-count");
+  const resolvedEl = document.getElementById("resolved-count");
+
+  // 🔥 SAFETY CHECK (VERY IMPORTANT)
+  if (!totalEl || !openEl || !progressEl || !resolvedEl) {
+    return; // dashboard not visible → skip
+  }
+
+  const total = tickets.length;
+  const open = tickets.filter(t => t.status === "New").length;
+  const progress = tickets.filter(t => t.status === "In Progress").length;
+  const resolved = tickets.filter(t => t.status === "Resolved").length;
+
+  totalEl.textContent = total;
+  openEl.textContent = open;
+  progressEl.textContent = progress;
+  resolvedEl.textContent = resolved;
+}
+
 
 // ================= SIDEBAR ================= //
 export function setActiveSidebar(item) {
@@ -23,6 +47,7 @@ export function setActiveSidebar(item) {
 
 // ================= VIEW SWITCH =================
 export function switchView(viewName) {
+
   const views = document.querySelectorAll(".view");
 
   views.forEach(v => v.classList.remove("active"));
@@ -32,6 +57,12 @@ export function switchView(viewName) {
   if (target) {
     target.classList.add("active");
   }
+
+  // 🔥 FIX: render dashboard ONLY when visible
+  if (viewName === "dashboard") {
+    renderDashboardStats(tickets);
+  }
+
 }
 
 
@@ -85,6 +116,14 @@ export function renderTickets() {
     return;
   }
 
+  const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
+
+  const nextBtn = document.getElementById("next-page");
+  const prevBtn = document.getElementById("prev-page");
+
+  if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
+  if (prevBtn) prevBtn.disabled = currentPage <= 1;
+
   // ================= 5. PAGINATION =================
   const start = (currentPage - 1) * itemsPerPage;
   const end = start + itemsPerPage;
@@ -92,6 +131,13 @@ export function renderTickets() {
   const paginatedTickets = filteredTickets.slice(start, end);
 
   // ================= 6. RENDER =================
+  const pagination = document.querySelector(".pagination");
+
+  if (filteredTickets.length <= itemsPerPage) {
+    pagination?.classList.add("hidden");
+  } else {
+    pagination?.classList.remove("hidden");
+  }
   paginatedTickets.forEach(ticket => {
     const item = document.createElement("div");
     item.className = "ticket-item";
@@ -152,4 +198,16 @@ export function renderTicketDetail(ticket) {
       detailActivity.appendChild(li);
     });
   }
+}
+
+export function setActiveFilterButton(filter) {
+  const buttons = document.querySelectorAll(".filter-btn");
+
+  buttons.forEach(btn => {
+    btn.classList.remove("active");
+
+    if (btn.dataset.filter === filter) {
+      btn.classList.add("active");
+    }
+  });
 }

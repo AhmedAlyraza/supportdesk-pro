@@ -8,12 +8,14 @@ import {
   initSortEvents,
   initSearchEvents,
   initDeleteEvents,
-  initPaginationEvents
+  initPaginationEvents,
+  initDashboardCardEvents
 } from "./events.js";
 
 import {
   renderTickets,
-  renderTicketDetail
+  renderTicketDetail,
+  renderDashboardStats
 } from "./ui.js";
 
 import {
@@ -31,8 +33,12 @@ import { loadTicketsFromStorage } from "./storage.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   // Load saved tickets first
-  const storedTickets = loadTicketsFromStorage();
-  setTickets(storedTickets);
+const storedTickets = loadTicketsFromStorage() || [];  
+setTickets(storedTickets);
+
+  // Initial render
+  renderTickets();
+  renderDashboardStats(tickets);
   // Init all event systems
   initSidebarEvents();
   initModalEvents();
@@ -45,11 +51,14 @@ document.addEventListener("DOMContentLoaded", () => {
   initSortEvents();
   initSearchEvents();
 
-  // Initial render
-  renderTickets();
-
   initDeleteEvents();
   initPaginationEvents();
+  initDashboardCardEvents();
+
+  if (tickets.length > 0) {
+    setSelectedTicket(tickets[0]);
+    renderTicketDetail(tickets[0]);
+  }
 
   // ✅ IMPORTANT FIX (default state)
   if (detailPanel && layout) {
