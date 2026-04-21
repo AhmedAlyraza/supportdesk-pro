@@ -9,7 +9,9 @@ import {
   initSearchEvents,
   initDeleteEvents,
   initPaginationEvents,
-  initDashboardCardEvents
+  initDashboardCardEvents,
+  initSettingsEvents,
+  initPriorityFilterEvents
 } from "./events.js";
 
 import {
@@ -26,15 +28,24 @@ import {
 import {
   tickets,
   setTickets,
-  setSelectedTicket
+  setSelectedTicket,
+  currentPriorityFilter,
+  currentCategoryFilter,
+  currentAssigneeFilter,
 } from "./state.js";
 
 import { loadTicketsFromStorage } from "./storage.js";
 
 document.addEventListener("DOMContentLoaded", () => {
+
+  const savedTheme = localStorage.getItem("theme");
+
+if (savedTheme === "dark") {
+  document.body.classList.add("dark");
+}
   // Load saved tickets first
-const storedTickets = loadTicketsFromStorage() || [];  
-setTickets(storedTickets);
+  const storedTickets = loadTicketsFromStorage() || [];
+  setTickets(storedTickets);
 
   // Initial render
   renderTickets();
@@ -54,7 +65,10 @@ setTickets(storedTickets);
   initDeleteEvents();
   initPaginationEvents();
   initDashboardCardEvents();
-
+  initPriorityFilterEvents();
+  initCategoryFilterEvents();
+  initAssigneeFilterEvents();
+  initSettingsEvents();
   if (tickets.length > 0) {
     setSelectedTicket(tickets[0]);
     renderTicketDetail(tickets[0]);

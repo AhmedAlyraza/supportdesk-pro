@@ -1,5 +1,6 @@
 export let tickets = [];
 export let selectedTicket = null;
+export let editingTicketId = null;
 
 export let currentFilter = "All";
 export let currentSort = "Latest";
@@ -7,6 +8,15 @@ export let searchQuery = "";
 
 export let currentPage = 1;
 export const itemsPerPage = 5;
+export let currentPriorityFilter = "All";
+export let currentCategoryFilter = "All";
+export let currentAssigneeFilter = "All";
+
+export let defaultStatus = localStorage.getItem("defaultStatus") || "New";
+export function setDefaultStatus(status) {
+  defaultStatus = status;
+  localStorage.setItem("defaultStatus", status);
+}
 
 export function setTickets(loadedTickets) {
   tickets = loadedTickets;
@@ -66,4 +76,34 @@ export function deleteTicket(id) {
 
 export function setPage(page) {
   currentPage = page;
+}
+
+export function setEditingTicket(id) {
+  editingTicketId = id;
+}
+
+
+export function generateTicketId() {
+  if (tickets.length === 0) return "#SD-1001";
+
+  const numbers = tickets.map(t =>
+    parseInt(t.id.replace("#SD-", ""), 10)
+  );
+
+  const max = Math.max(...numbers);
+
+  return "#SD-" + (max + 1);
+}
+
+
+export function setPriorityFilter(val) {
+  currentPriorityFilter = val;
+}
+
+export function setCategoryFilter(val) {
+  currentCategoryFilter = val;
+}
+
+export function setAssigneeFilter(val) {
+  currentAssigneeFilter = val;
 }

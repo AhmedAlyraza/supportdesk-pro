@@ -1,13 +1,13 @@
 import { sidebarNav, modal, openBtn, closeBtn, form, ticketList, closeDetailBtn, detailPanel, layout } from "./dom.js";
 import { switchView, setActiveSidebar, openModal, closeModal } from "./ui.js";
 import { addTicket, setSelectedTicket, getTicketById } from "./state.js";
-import { renderTickets, renderTicketDetail, setActiveFilterButton} from "./ui.js";
+import { renderTickets, renderTicketDetail, setActiveFilterButton } from "./ui.js";
 import { updateTicketStatus } from "./state.js";
 import { setFilter, setSort, setSearchQuery, deleteTicket, tickets } from "./state.js";
 import { saveTicketsToStorage } from "./storage.js";
-import { currentPage, setPage } from "./state.js";
-
-
+import { currentPage, setPage, setTickets } from "./state.js";
+import { renderDashboardStats } from "./ui.js";
+import { setEditingTicket, editingTicketId, generateTicketId, setDefaultStatus, defaultStatus, setPriorityFilter } from "./state.js";
 // ================= SIDEBAR =================
 export function initSidebarEvents() {
   if (!sidebarNav) return;
@@ -47,38 +47,125 @@ export function initModalEvents() {
 
   if (!openBtn || !modal || !form) return;
 
-  openBtn.addEventListener("click", () => openModal(modal));
+  openBtn.addEventListener("click", () => {
+
+    // 🔥 Apply default status to form
+    const statusField = document.getElementById("ticket-status");
+    if (statusField) {
+      statusField.value = defaultStatus;
+    }
+
+    openModal(modal);
+  });
 
   closeBtn.addEventListener("click", () => closeModal(modal));
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
 
-    const newTicket = {
-      id: "#SD-" + Math.floor(Math.random() * 10000),
-      title: document.getElementById("ticket-title").value,
-      user: document.getElementById("ticket-user").value,
-      department: document.getElementById("ticket-department").value,
-      status: document.getElementById("ticket-status").value,
-      activity: ["Ticket created"],
+    const title = document.getElementById("ticket-title").value.trim();
+    const user = document.getElementById("ticket-user").value.trim();
+    const priority = document.getElementById("ticket-priority").value;
+    const category = document.getElementById("ticket-category").value;
+    const assignee = document.getElementById("ticket-assignee").value;
+    const department = document.getElementById("ticket-department").value;
+    const status = document.getElementById("ticket-status").value || defaultStatus;
+    const description = document.getElementById("ticket-description").value.trim();
 
-      createdAt: Date.now()
-    };
+    // 🔥 1. VALIDATION (IMPORTANT)
+    if (!title || !user) {
+      alert("Title and User are required");
+      return;
+    }
 
-    // Update state
-    addTicket(newTicket);
-    setSelectedTicket(newTicket);
+    let activeTicket = null;
+
+    // 🔥 2. EDIT MODE
+    if (editingTicketId) {
+      const ticket = getTicketById(editingTicketId);
+      const oldStatus = ticket.status;
+      if (ticket) {
+        ticket.title = title;
+        ticket.user = user;
+        ticket.assignee = assignee;
+        ticket.category = category;
+        ticket.priority = priority;
+        ticket.department = department;
+        ticket.status = status;
+        ticket.description = description;
+
+        if (!ticket.activity) ticket.activity = [];
+        // ✔ General update log
+        ticket.activity.push({
+          type: "update",
+          message: "Ticket updated",
+          time: Date.now()
+        });
+
+        // ✔ Status change log (only if changed)
+        if (oldStatus !== status) {
+          ticket.activity.push({
+            type: "status",
+            message: "Status changed",
+            from: oldStatus,
+            to: status,
+            time: Date.now()
+          });
+        }
+        activeTicket = ticket;
+      }
+
+    } else {
+      // 🔥 3. CREATE MODE
+      const newTicket = {
+        id: generateTicketId(), title,
+        title,
+        user,
+        assignee,
+        category,
+        priority,
+        department,
+        status,
+        description,
+        createdAt: Date.now(),
+        activity: [
+          {
+            type: "create",
+            message: "Ticket created",
+            from: null,
+            to: status,
+            time: Date.now()
+          }
+        ]
+      };
+
+      addTicket(newTicket);
+      activeTicket = newTicket;
+    }
+
+    // 🔥 4. RESET EDIT STATE
+    setEditingTicket(null);
+
+    // 🔥 5. SAVE TO LOCAL STORAGE (VERY IMPORTANT)
     saveTicketsToStorage(tickets);
 
-    // Update UI
-    renderTickets();
-    renderTicketDetail(newTicket);
+    // 🔥 6. UPDATE UI
+    setSelectedTicket(activeTicket);
 
-    // Show detail panel
+    renderTickets();
+    renderTicketDetail(activeTicket);
+    renderDashboardStats(tickets);
+
+    // 🔥 7. SHOW DETAIL PANEL
     detailPanel.classList.remove("hidden");
     layout.classList.remove("no-detail");
-     
-    renderDashboardStats(tickets);
+
+    // 🔥 8. REDIRECT TO TICKETS VIEW
+    switchView("tickets");
+
+    // 🔥 9. RESET FORM UI
+    document.querySelector(".modal-header h2").textContent = "Create New Ticket";
+    document.querySelector("#ticket-form button[type='submit']").textContent = "Create Ticket";
 
     closeModal(modal);
     form.reset();
@@ -290,6 +377,15 @@ export function initDeleteEvents() {
 
     const id = activeItem.dataset.id;
 
+    const ticket = getTicketById(id);
+
+    if (ticket) {
+      ticket.activity.push({
+        type: "delete",
+        message: "Ticket deleted",
+        time: Date.now()
+      });
+    }
     // remove from state
     deleteTicket(id);
 
@@ -299,7 +395,7 @@ export function initDeleteEvents() {
     // re-render list
     renderTickets();
 
-     renderDashboardStats(tickets);
+    renderDashboardStats(tickets);
 
     // handle selection
     if (tickets.length > 0) {
@@ -364,5 +460,187 @@ export function initDashboardCardEvents() {
       renderTickets();
 
     });
+  });
+}
+
+
+function openEditModal(ticketId) {
+  const ticket = getTicketById(ticketId);
+  if (!ticket) return;
+
+  setEditingTicket(ticketId);
+
+  // 🔥 Prefill form
+  document.getElementById("ticket-title").value = ticket.title;
+  document.getElementById("ticket-user").value = ticket.user;
+  document.getElementById("ticket-department").value = ticket.department;
+  document.getElementById("ticket-status").value = ticket.status;
+  document.getElementById("ticket-description").value = ticket.description || "";
+
+  // 🔥 Change UI text
+  document.querySelector(".modal-header h2").textContent = "Edit Ticket";
+  document.querySelector("#ticket-form button[type='submit']").textContent = "Update Ticket";
+
+  openModal(modal);
+}
+
+
+document.addEventListener("click", (e) => {
+
+  const editBtn = document.getElementById("edit-ticket-btn");
+
+  if (e.target.id === "edit-ticket-btn") {
+    const ticketId = e.target.dataset.id;
+    openEditModal(ticketId);
+  }
+
+});
+
+export function initSettingsEvents() {
+
+  const btn = document.getElementById("clear-data-btn");
+
+  if (!btn) return;
+
+  btn.addEventListener("click", () => {
+
+    if (!confirm("Are you sure you want to delete all tickets?")) return;
+
+    setTickets([]);
+    saveTicketsToStorage([]);
+
+    renderTickets();
+
+    alert("All tickets cleared");
+  });
+}
+
+
+document.getElementById("clear-btn")?.addEventListener("click", () => {
+
+  const confirmDelete = confirm(
+    "This will permanently delete ALL tickets.\n\nThis cannot be undone."
+  );
+
+  if (!confirmDelete) return;
+
+  localStorage.removeItem("tickets");
+  location.reload();
+});
+document.getElementById("export-btn")?.addEventListener("click", () => {
+
+  if (!tickets.length) {
+    alert("No tickets to export");
+    return;
+  }
+
+  const blob = new Blob([JSON.stringify(tickets, null, 2)], {
+    type: "application/json"
+  });
+
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `tickets-${Date.now()}.json`;
+  a.click();
+
+});
+document.getElementById("import-file")?.addEventListener("change", (e) => {
+
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = function (event) {
+    try {
+      const imported = JSON.parse(event.target.result);
+
+      if (!Array.isArray(imported)) {
+        alert("Invalid file format");
+        return;
+      }
+
+      setTickets(imported);
+      saveTicketsToStorage(imported);
+
+      renderTickets();
+      renderDashboardStats(imported);
+
+      alert("Import successful");
+
+    } catch (err) {
+      alert("Invalid JSON file");
+    }
+  };
+
+  reader.readAsText(file);
+});
+document.getElementById("default-status")?.addEventListener("change", (e) => {
+  setDefaultStatus(e.target.value);
+});
+document.getElementById("report-filter")?.addEventListener("change", (e) => {
+
+  const value = e.target.value;
+
+  let filtered = tickets;
+
+  if (value !== "all") {
+    const days = parseInt(value);
+    const now = Date.now();
+
+    filtered = tickets.filter(t => {
+      return t.createdAt && (now - t.createdAt) <= days * 24 * 60 * 60 * 1000;
+    });
+  }
+
+  renderReports(filtered);
+});
+
+const priority = document.getElementById("ticket-priority").value;
+
+export function initPriorityFilterEvents() {
+  const priorityButtons = document.querySelectorAll(".priority-filter-btn");
+
+  priorityButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      priorityButtons.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      setPriorityFilter(btn.dataset.priority);
+      renderTickets();
+    });
+  });
+}
+
+document.querySelectorAll("[data-category]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    setCategoryFilter(btn.dataset.category);
+    renderTickets();
+  });
+});
+
+document.querySelectorAll("[data-assignee]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    setAssigneeFilter(btn.dataset.assignee);
+    renderTickets();
+  });
+});
+
+
+const themeBtn = document.getElementById("theme-toggle");
+
+if (themeBtn) {
+  themeBtn.addEventListener("click", () => {
+
+    document.body.classList.toggle("dark");
+
+    if (document.body.classList.contains("dark")) {
+      localStorage.setItem("theme", "dark");
+    } else {
+      localStorage.setItem("theme", "light");
+    }
+
   });
 }

@@ -133,6 +133,18 @@
                                 <select class="select" id="sort-select">
                                     <option value="Latest">Latest</option>
                                     <option value="Oldest">Oldest</option>
+                                    <option value="Priority">Priority</option>
+                                </select>
+                                <select class="select" id="sort-select">
+                                    <option data-category="All">All</option>
+                                    <option data-category="Technical">Technical</option>
+                                    <option data-category="Billing">Billing</option>
+                                    <option data-category="General">General</option>
+                                </select>
+                                <select class="select" id="sort-select">
+                                    <option data-assignee="All">All</option>
+                                    <option data-assignee="Admin">Admin</option>
+                                    <option data-assignee="Support">Support</option>
                                 </select>
                             </div>
 
@@ -206,27 +218,173 @@
                                     </ul>
                                 </div>
                             </div>
+                            <button id="edit-ticket-btn">Edit</button>
                             <button id="delete-ticket-btn">Delete</button>
                         </div>
                 </section>
 
 
 
-                <section id="view-activity" class="view">
-                    <h2>Activity</h2>
-                </section>
+                <!-- ACTIVITY VIEW -->
+                <div id="view-activity" class="view">
+                    <div class="page-header">
+                        <h1>Activity</h1>
+                        <p>Recent ticket activity</p>
+                    </div>
+
+                    <div id="activity-list" class="activity-list"></div>
+                </div>
 
 
                 <!-- REPORTS VIEW -->
-                <section id="view-reports" class="view">
-                    <h2>Reports</h2>
-                </section>
+                <div id="view-reports" class="view">
+
+                    <h1 class="page-title">Reports</h1>
+                    <p class="page-subtitle">Ticket analytics overview</p>
+
+                    <!-- SUMMARY -->
+                    <div class="report-grid">
+
+                        <div class="report-card">
+                            <h4>Total</h4>
+                            <p id="report-total"></p>
+                        </div>
+
+                        <div class="report-card">
+                            <h4>New</h4>
+                            <p id="report-new"></p>
+                        </div>
+
+                        <div class="report-card">
+                            <h4>In Progress</h4>
+                            <p id="report-progress"></p>
+                        </div>
+
+                        <div class="report-card">
+                            <h4>Resolved</h4>
+                            <p id="report-resolved"></p>
+                        </div>
+
+                    </div>
+
+                    <!-- STATUS BAR -->
+                    <div class="settings-card">
+                        <h3>Status Distribution</h3>
+
+                        <div class="bar">
+                            <span>New</span>
+                            <div class="bar-fill new" id="bar-new"></div>
+                        </div>
+
+                        <div class="bar">
+                            <span>In Progress</span>
+                            <div class="bar-fill progress" id="bar-progress"></div>
+                        </div>
+
+                        <div class="bar">
+                            <span>Resolved</span>
+                            <div class="bar-fill resolved" id="bar-resolved"></div>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3>Filter</h3>
+
+                        <select id="report-filter">
+                            <option value="all">All Time</option>
+                            <option value="7">Last 7 Days</option>
+                            <option value="30">Last 30 Days</option>
+                        </select>
+
+                    </div>
+                    <div class="settings-card">
+                        <h3>Status Chart</h3>
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                    <!-- DEPARTMENT -->
+                    <div class="settings-card">
+                        <h3>Department Breakdown</h3>
+                        <div id="report-departments"></div>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3>Tickets Over Time</h3>
+                        <div id="report-trend"></div>
+                    </div>
+                    <div class="settings-card">
+                        <h3>Top Status</h3>
+                        <p id="top-status"></p>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3>Recent Activity</h3>
+                        <div id="report-activity"></div>
+                    </div>
+
+                </div>
 
 
                 <!-- SETTINGS VIEW -->
-                <section id="view-settings" class="view">
-                    <h2>Settings</h2>
-                </section>
+                <div id="view-settings" class="view">
+                    <div class="settings-HEADING">
+                        <h1 class="page-title">Settings</h1>
+                        <p class="page-subtitle">Manage your application preferences</p>
+                    </div>
+                    <div class="settings-item">
+                        <span>Theme</span>
+                        <button id="theme-toggle">Switch Theme</button>
+                    </div>
+                    <!-- GENERAL -->
+                    <div class="settings-card">
+                        <h3>General</h3>
+
+                        <div class="settings-item">
+                            <span>Default Ticket Status</span>
+                            <select id="default-status">
+                                <option>New</option>
+                                <option>In Progress</option>
+                                <option>Waiting</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- DATA -->
+                    <div class="settings-card">
+                        <h3>Data Management</h3>
+
+                        <div class="settings-item">
+                            <span>Export Tickets</span>
+                            <button id="export-btn" class="btn-secondary">Export JSON</button>
+                        </div>
+
+                        <div class="settings-item">
+                            <span>Import Tickets</span>
+                            <input type="file" id="import-file" />
+                        </div>
+                    </div>
+
+                    <!-- DANGER -->
+                    <div class="settings-card danger">
+                        <h3>Danger Zone</h3>
+
+                        <div class="settings-item">
+                            <span>Clear all tickets permanently</span>
+                            <button id="clear-btn" class="btn-danger">Clear All</button>
+                        </div>
+                    </div>
+
+                    <!-- INFO -->
+                    <div class="settings-card">
+                        <h3>Application Info</h3>
+
+                        <div class="settings-info">
+                            <p><strong>Version:</strong> 1.0.0</p>
+                            <p><strong>Total Tickets:</strong> <span id="settings-total"></span></p>
+                        </div>
+                    </div>
+
+                </div>
+
             </div>
         </div>
     </div>
@@ -249,7 +407,33 @@
                     <label for="ticket-user">User Name</label>
                     <input type="text" id="ticket-user" placeholder="Enter user name" required>
                 </div>
+                <!-- ASSIGNEE -->
+                <div class="form-group">
+                    <label for="ticket-assignee">Assignee</label>
+                    <input type="text" id="ticket-assignee" placeholder="Assign to..." />
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Priority</label>
+                        <select id="ticket-priority">
+                            <option value="Low">Low</option>
+                            <option value="Medium">Medium</option>
+                            <option value="High">High</option>
+                            <option value="Urgent">Urgent</option>
+                        </select>
+                    </div>
 
+                    <!-- CATEGORY -->
+                    <div class="form-group">
+                        <label for="ticket-category">Category</label>
+                        <select id="ticket-category">
+                            <option value="Technical">Technical</option>
+                            <option value="Billing">Billing</option>
+                            <option value="General">General</option>
+                        </select>
+                    </div>
+
+                </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="ticket-department">Department</label>
@@ -299,6 +483,7 @@
         </div>
     </footer>
     <script type="module" src="assets/js/app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>
 
 </html>

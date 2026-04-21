@@ -409,3 +409,75 @@ body {
   padding: 40px;
   color: var(--color-text-muted);
 }
+
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.stat-card {
+  background: linear-gradient(145deg, #1e293b, #0f172a);
+  padding: 20px;
+  border-radius: 14px;
+
+  border: 1px solid rgba(255,255,255,0.05);
+
+  box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+
+  transition: 0.25s;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+}
+#statusChart {
+  max-width: 350px;
+  margin: 20px auto;
+  display: block;
+}
+.progress-bar {
+  height: 8px;
+  border-radius: 10px;
+  background: #0f172a;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.4s ease;
+}
+
+.progress-new {
+  background: #3b82f6;
+}
+
+.progress-progress {
+  background: #f59e0b;
+}
+
+.progress-resolved {
+  background: #22c55e;
+}
+#report-filter {
+  background: #0f172a;
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.1);
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+.report-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.report-item {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.03);
+  display: flex;
+  justify-content: space-between;
+}
