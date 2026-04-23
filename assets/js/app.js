@@ -1,3 +1,12 @@
+// =========================
+// LOGIN CHECK (TOP LEVEL)
+// =========================
+const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+
+if (!currentUser) {
+  window.location.href = "login.html";
+}
+
 import {
   initSidebarEvents,
   initModalEvents,
@@ -45,7 +54,50 @@ import {
   loadThemeFromStorage
 } from "./storage.js";
 
+import { initSyncListener } from "./sync.js";
+
+
+if ("serviceWorker" in navigator && location.hostname !== "localhost") {
+  navigator.serviceWorker
+    .register("./service-worker.js")
+    .then(() => console.log("Service Worker Registered"))
+    .catch(err => console.log("SW error:", err));
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+  /* =========================
+     USER login DISPLAY
+  ========================= */
+  const currentUserNameEl = document.getElementById("current-user-name");
+
+  if (currentUserNameEl && currentUser) {
+    currentUserNameEl.textContent = `${currentUser.name} (${currentUser.role})`;
+  }
+
+  const logoutBtn = document.getElementById("logout-btn");
+
+  logoutBtn?.addEventListener("click", () => {
+    localStorage.removeItem("currentUser");
+    window.location.href = "login.html";
+  });
+
+  if (currentUser?.role === "Support") {
+    const settingsNav = document.querySelector('[data-view="settings"]');
+    if (settingsNav) {
+      settingsNav.style.display = "none";
+    }
+  }
+
+  // =============================
+  // REAL-TIME SYNC 
+  // =============================
+  initSyncListener((incomingTickets) => {
+    setTickets(incomingTickets);
+
+    renderTickets();
+    renderDashboardStats(tickets);
+  });
+
   // =========================
   // THEME
   // =========================
@@ -107,4 +159,14 @@ document.addEventListener("DOMContentLoaded", () => {
   } else {
     renderTicketDetail(null);
   }
+
+  const topbar = document.querySelector(".topbar");
+
+  window.addEventListener("scroll", () => {
+    if (window.scrollY > 10) {
+      topbar.classList.add("topbar-scrolled");
+    } else {
+      topbar.classList.remove("topbar-scrolled");
+    }
+  });
 });

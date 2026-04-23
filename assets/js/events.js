@@ -75,12 +75,18 @@ import {
   setActiveFilterButton
 } from "./ui.js";
 
+import { broadcastUpdate } from "./sync.js";
+import { showToast } from "./helpers.js";
 // =========================
 // HELPERS
 // =========================
 function persistAll() {
   saveTicketsToStorage(tickets);
   saveActivityToStorage(activityLogs);
+  broadcastUpdate({
+    type: "SYNC_TICKETS",
+    payload: tickets
+  });
 }
 
 function addTicketActivity(ticket, entry) {
@@ -175,7 +181,8 @@ export function initModalEvents() {
 
     const title = document.getElementById("ticket-title")?.value || "";
     const user = document.getElementById("ticket-user")?.value || "";
-    const assignee = document.getElementById("ticket-assignee")?.value || "";
+    const loggedInUser = JSON.parse(localStorage.getItem("currentUser"));
+    const assignee = document.getElementById("ticket-assignee")?.value || loggedInUser?.role || "Support";
     const priority = document.getElementById("ticket-priority")?.value || "Low";
     const category = document.getElementById("ticket-category")?.value || "General";
     const department = document.getElementById("ticket-department")?.value || "General";
@@ -205,7 +212,7 @@ export function initModalEvents() {
         message: "Ticket updated",
         time: Date.now()
       });
-
+      showToast("Ticket updated");
       if (oldStatus !== status) {
         addTicketActivity(ticket, {
           type: "status",
@@ -241,6 +248,7 @@ export function initModalEvents() {
       });
 
       addTicket(newTicket);
+      showToast("Ticket created");
     }
 
     // ================= RESET =================
@@ -307,6 +315,12 @@ export function initTicketEvents() {
   if (!ticketList) return;
 
   ticketList.addEventListener("click", (e) => {
+
+    if (e.target.classList.contains("empty-create-btn")) {
+      openBtn.click();
+      return;
+    }
+
     const item = e.target.closest(".ticket-item");
     if (!item) return;
 
@@ -346,6 +360,7 @@ export function initStatusEvents() {
       to: newStatus,
       time: Date.now()
     });
+    showToast("Ticket updated");
 
     setSelectedTicket(ticket);
     persistAll();
@@ -422,6 +437,7 @@ export function initDeleteEvents() {
     });
 
     deleteTicket(ticketId);
+    showToast("Ticket deleted", "error");
 
     persistAll();
     refreshAllViews();
@@ -648,6 +664,7 @@ export function initKanbanEvents() {
       to: newStatus,
       time: Date.now()
     });
+    showToast("Status updated");
 
     setSelectedTicket(ticket);
     persistAll();

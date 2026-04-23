@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="assets/css/layout.css" />
     <link rel="stylesheet" href="assets/css/components.css" />
     <link rel="stylesheet" href="assets/css/utilities.css" />
+
+    <link rel="manifest" href="manifest.json">
 </head>
 
 <body>
@@ -28,12 +30,11 @@
             </div>
 
             <div class="topbar_right">
-                <form id="search-form">
-                    <input type="text" class="search-input-topbar" placeholder="Search tickets..." />
-                </form>
-                <button class="btn--primary" id="new-ticket-btn">New Ticket</button>
+                <div class="topbar-user">
+                    <span id="current-user-name"></span>
+                    <button id="logout-btn" class="btn-secondary" type="button">Logout</button>
+                </div>
             </div>
-
         </div>
     </header>
 
@@ -123,37 +124,53 @@
 
                         <!-- LEFT -->
                         <div class="open-requests">
+                            <div class="tickets-header">
+                                <div class="tickets-header-left">
+                                    <h1>Open Requests</h1>
+                                    <p>Overview of all created tickets</p>
+                                </div>
 
+                                <div class="tickets-header-right">
+                                    <form id="search-form">
+                                        <input type="text" class="search-input-topbar"
+                                            placeholder="Search tickets..." />
+                                    </form>
+                                    <button id="new-ticket-btn" class="btn--primary" type="button">
+                                        + New Ticket
+                                    </button>
+                                </div>
+                            </div>
                             <div class="open-requests__header">
-                                <h2>Open Requests</h2>
+                                <div class="open-requests__filters">
+                                    <button class="filter-btn active" data-filter="All">All</button>
+                                    <button class="filter-btn" data-filter="New">New</button>
+                                    <button class="filter-btn" data-filter="In Progress">In Progress</button>
+                                    <button class="filter-btn" data-filter="Waiting">Waiting</button>
+                                    <button class="filter-btn" data-filter="Resolved">Resolved</button>
+                                </div>
+                                <div class="filter-selection">
+                                    <select id="sort-select" class="select">
+                                        <option value="Latest">Latest</option>
+                                        <option value="Oldest">Oldest</option>
+                                        <option value="Priority">Priority</option>
+                                    </select>
 
-                                <select id="sort-select" class="select">
-                                    <option value="Latest">Latest</option>
-                                    <option value="Oldest">Oldest</option>
-                                    <option value="Priority">Priority</option>
-                                </select>
+                                    <select id="category-filter" class="select">
+                                        <option value="All">All</option>
+                                        <option value="Technical">Technical</option>
+                                        <option value="Billing">Billing</option>
+                                        <option value="General">General</option>
+                                    </select>
 
-                                <select id="category-filter" class="select">
-                                    <option value="All">All</option>
-                                    <option value="Technical">Technical</option>
-                                    <option value="Billing">Billing</option>
-                                    <option value="General">General</option>
-                                </select>
-
-                                <select id="assignee-filter" class="select">
-                                    <option value="All">All</option>
-                                    <option value="Admin">Admin</option>
-                                    <option value="Support">Support</option>
-                                </select>
+                                    <select id="assignee-filter" class="select">
+                                        <option value="All">All</option>
+                                        <option value="Admin">Admin</option>
+                                        <option value="Support">Support</option>
+                                    </select>
+                                </div>
                             </div>
 
-                            <div class="open-requests__filters">
-                                <button class="filter-btn active" data-filter="All">All</button>
-                                <button class="filter-btn" data-filter="New">New</button>
-                                <button class="filter-btn" data-filter="In Progress">In Progress</button>
-                                <button class="filter-btn" data-filter="Waiting">Waiting</button>
-                                <button class="filter-btn" data-filter="Resolved">Resolved</button>
-                            </div>
+
 
                             <!-- JS WILL RENDER HERE -->
                             <div id="ticket-list"></div>
@@ -268,12 +285,12 @@
                 <!-- SETTINGS -->
                 <section id="view-settings" class="view">
                     <h1 class="page-title">Settings</h1>
-                    <div class="settings-item">
-                        <label>Theme Mode</label>
-
+                    <!-- THEME -->
+                    <div class="settings-section-title">Theme Mode</div>
+                    <div class="settings-card">
                         <div class="theme-toggle">
                             <button id="theme-light" class="theme-btn">Light</button>
-                            <button id="theme-dark" class="theme-btn">Dark</button>
+                            <button id="theme-dark" class="theme-btn active">Dark</button>
                         </div>
                     </div>
 
@@ -381,11 +398,20 @@
 
 
     <footer class="footer">
-        <div class="container row">
-            <p>© 2026 SupportDesk Pro</p>
+        <div class="container">
+            <div class="row">
+                <div class="footer__left">
+                    <p>© 2026 SupportDesk Pro</p>
+                </div>
+
+                <div class="footer__right">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms</a>
+                </div>
+            </div>
         </div>
     </footer>
-
+    <div id="toast-container"></div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="module" src="assets/js/app.js"></script>
 

@@ -69,6 +69,10 @@ export function closeModal(modal) {
   modal.classList.add("hidden");
 }
 
+document.getElementById("empty-create-btn")?.addEventListener("click", () => {
+  openModal(modal);
+});
+
 // =========================
 // DASHBOARD
 // =========================
@@ -151,7 +155,8 @@ export function renderTickets() {
     list.innerHTML = `
       <div class="empty-state">
         <h3>No tickets found</h3>
-        <p>Try changing your filters or create a new ticket.</p>
+        <p class="page-subtitle">Try changing your filters or create a new ticket.</p>
+        <button class="btn--primary empty-create-btn">Create Ticket</button>
       </div>
     `;
 
@@ -253,19 +258,31 @@ export function renderTicketDetail(ticket) {
 
   detailActivity.innerHTML = "";
 
-  const activities = Array.isArray(ticket.activity) ? ticket.activity : [];
-
-  if (!activities.length) {
+  if (!ticket.activity || ticket.activity.length === 0) {
     detailActivity.innerHTML = `<li>No activity yet</li>`;
   } else {
-    activities
-      .slice()
-      .reverse()
-      .forEach(entry => {
-        const li = document.createElement("li");
-        li.textContent = buildTicketActivityText(entry);
-        detailActivity.appendChild(li);
-      });
+
+    ticket.activity.slice().reverse().forEach(entry => {
+
+      let text = "";
+
+      if (entry.type === "create") {
+        text = `Created with status ${entry.to}`;
+      }
+
+      else if (entry.type === "status") {
+        text = `Status changed from ${entry.from} to ${entry.to}`;
+      }
+
+      else if (entry.type === "update") {
+        text = `Ticket updated`;
+      }
+
+      const li = document.createElement("li");
+      li.textContent = text;
+
+      detailActivity.appendChild(li);
+    });
   }
 
   if (editBtn) editBtn.dataset.id = ticket.id;
@@ -322,67 +339,70 @@ export function renderActivity() {
     container.innerHTML = `
       <div class="empty-state">
         <h3>No activity yet</h3>
-        <p>Ticket actions will appear here.</p>
+        <p>All ticket actions will appear here</p>
       </div>
     `;
     return;
   }
 
   activityLogs.forEach(log => {
-    const div = document.createElement("div");
-    div.className = `activity-item activity-${log.type || "info"}`;
 
-    const date = log.time ? new Date(log.time) : null;
-    const formatted = date
-      ? date.toLocaleString("en-GB", {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit"
-        })
-      : "Unknown time";
+    const date = new Date(log.time);
 
-    let messageHTML = "";
+    const formatted = date.toLocaleString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
 
-    if (log.type === "status") {
-      messageHTML = `
-        <p class="activity-title">${log.ticketTitle}</p>
-        <p class="activity-text">
-          Status changed 
-          <span class="status-badge old">${log.from}</span>
-          →
-          <span class="status-badge new">${log.to}</span>
-        </p>
-      `;
-    } else if (log.type === "create") {
-      messageHTML = `
-        <p class="activity-title">${log.ticketTitle}</p>
-        <p class="activity-text">
-          Ticket created with status
-          <span class="status-badge new">${log.to}</span>
-        </p>
-      `;
-    } else if (log.type === "update") {
-      messageHTML = `
-        <p class="activity-title">${log.ticketTitle}</p>
-        <p class="activity-text">Ticket details updated</p>
-      `;
-    } else if (log.type === "delete") {
-      messageHTML = `
-        <p class="activity-title">${log.ticketTitle}</p>
-        <p class="activity-text danger">Ticket deleted</p>
-      `;
-    } else {
-      messageHTML = `
-        <p class="activity-title">${log.ticketTitle || "Unknown ticket"}</p>
-        <p class="activity-text">${log.message || "Activity updated"}</p>
+    let content = "";
+
+    // ================= TYPE HANDLING =================
+    if (log.type === "create") {
+      content = `
+        <strong>${log.ticketTitle}</strong>
+        <p>Created with status <span class="status new">${log.to}</span></p>
       `;
     }
 
+    else if (log.type === "status") {
+      content = `
+        <strong>${log.ticketTitle}</strong>
+        <p>
+          Status changed 
+          <span class="status old">${log.from}</span> → 
+          <span class="status new">${log.to}</span>
+        </p>
+      `;
+    }
+
+    else if (log.type === "update") {
+      content = `
+        <strong>${log.ticketTitle}</strong>
+        <p>Details updated</p>
+      `;
+    }
+
+    else if (log.type === "delete") {
+      content = `
+        <strong>${log.ticketTitle}</strong>
+        <p class="danger">Ticket deleted</p>
+      `;
+    }
+
+    const div = document.createElement("div");
+    div.className = `activity-item ${log.type}`;
+
     div.innerHTML = `
-      <div class="activity-content">
-        ${messageHTML}
+      <div class="activity-left">
+        <div class="activity-dot"></div>
+      </div>
+
+      <div class="activity-right">
+        ${content}
+
         <div class="activity-footer">
           <span>${log.ticketId || ""}</span>
           <span>${formatted}</span>

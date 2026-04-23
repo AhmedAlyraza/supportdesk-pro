@@ -1,10 +1,17 @@
 /* =========================
-   GLOBAL RESET
+   GLOBAL SMOOTH BEHAVIOR
 ========================= */
+
 *,
 *::before,
 *::after {
-  box-sizing: border-box;
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast),
+    opacity var(--transition-fast);
 }
 
 html {
