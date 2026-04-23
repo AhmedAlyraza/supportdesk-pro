@@ -15,87 +15,84 @@
 </head>
 
 <body>
-    <!-- HEADER -->
-    <header class="topbar">
-        <div class="container">
-            <div class="row">
-                <div class="col topbar_left">
-                    <img src="assets/images/SupportDesk_Pro_site_logo.png" class="header_logo"
-                        alt="SupportDesk Pro Logo" class="logo">
-                    <span class="topbar_subtitle">Support Workspace</span>
-                </div>
 
-                <div class="col topbar_right">
-                    <form id="search-form">
-                        <input type="text" class="search-input" placeholder="Search tickets..." />
-                    </form> <button class="btn btn--primary" id="new-ticket-btn">New Ticket</button>
-                </div>
+    <!-- =========================
+   HEADER
+========================= -->
+    <header class="topbar">
+        <div class="container row">
+
+            <div class="topbar_left">
+                <img src="assets/images/SupportDesk_Pro_site_logo.png" class="header_logo" />
+                <span class="topbar_subtitle">Support Workspace</span>
             </div>
+
+            <div class="topbar_right">
+                <form id="search-form">
+                    <input type="text" class="search-input-topbar" placeholder="Search tickets..." />
+                </form>
+                <button class="btn--primary" id="new-ticket-btn">New Ticket</button>
+            </div>
+
         </div>
     </header>
 
 
-    <div class="main-content">
+    <!-- =========================
+   MAIN APP
+========================= -->
+    <main class="main-content">
         <div class="container">
 
             <!-- SIDEBAR -->
             <aside class="sidebar">
                 <nav class="sidebar_nav">
 
-                    <a href="" data-view="dashboard" class="sidebar_item sidebar_item-active">
-                        <span class="sidebar_icon">
-                            <i class="fa-solid fa-table-cells-large"></i>
-                        </span>
-                        <span class="sidebar_label">Dashboard</span>
+                    <a href="#" data-view="dashboard" class="sidebar_item sidebar_item-active">
+                        <i class="fa-solid fa-table-cells-large"></i>
+                        <span>Dashboard</span>
                     </a>
 
-                    <a href="" data-view="tickets" class="sidebar_item">
-                        <span class="sidebar_icon">
-                            <i class="fa-solid fa-house"></i>
-                        </span>
-                        <span class="sidebar_label">Tickets</span>
+                    <a href="#" data-view="tickets" class="sidebar_item">
+                        <i class="fa-solid fa-ticket"></i>
+                        <span>Tickets</span>
                     </a>
 
-                    <a href="" data-view="activity" class="sidebar_item">
-                        <span class="sidebar_icon">
-                            <i class="fa-solid fa-clock"></i>
-                        </span>
-                        <span class="sidebar_label">Activity</span>
+                    <a href="#" data-view="activity" class="sidebar_item">
+                        <i class="fa-solid fa-clock"></i>
+                        <span>Activity</span>
                     </a>
 
-                    <a href="" data-view="reports" class="sidebar_item">
-                        <span class="sidebar_icon">
-                            <i class="fa-solid fa-chart-simple"></i>
-                        </span>
-                        <span class="sidebar_label">Reports</span>
+                    <a href="#" data-view="reports" class="sidebar_item">
+                        <i class="fa-solid fa-chart-simple"></i>
+                        <span>Reports</span>
                     </a>
 
-                    <a href="" data-view="settings" class="sidebar_item">
-                        <span class="sidebar_icon">
-                            <i class="fa-solid fa-gear"></i>
-                        </span>
-                        <span class="sidebar_label">Settings</span>
+                    <a href="#" data-view="kanban" class="sidebar_item">
+                        <i class="fa-solid fa-table-columns"></i>
+                        <span>Kanban</span>
+                    </a>
+
+                    <a href="#" data-view="settings" class="sidebar_item">
+                        <i class="fa-solid fa-gear"></i>
+                        <span>Settings</span>
                     </a>
 
                 </nav>
             </aside>
 
-            <div class="views">
 
-                <!-- DASHBOARD VIEW -->
+            <!-- =========================
+       VIEWS
+    ========================= -->
+            <section class="views">
+
+                <!-- DASHBOARD -->
                 <section id="view-dashboard" class="view active">
+                    <h1 class="page-title">Dashboard</h1>
+                    <p class="page-subtitle">Overview of tickets and support activity</p>
 
-                    <!-- HEADER -->
-                    <div class="dashboard-header">
-                        <h1 class="dashboard-title">Dashboard</h1>
-                        <p class="dashboard-subtitle">
-                            Overview of tickets and support activity
-                        </p>
-                    </div>
-
-                    <!-- STATS -->
                     <div class="dashboard-cards">
-
                         <div class="dashboard-card" data-filter="All">
                             <p class="card-label">Total Tickets</p>
                             <h3 id="total-count" class="card-value">0</h3>
@@ -115,40 +112,41 @@
                             <p class="card-label">Resolved</p>
                             <h3 id="resolved-count" class="card-value">0</h3>
                         </div>
-
                     </div>
                 </section>
 
-                <!-- TICKETS VIEW -->
+
+                <!-- TICKETS -->
                 <section id="view-tickets" class="view">
 
                     <div class="dashboard-layout">
-                        <!-- Ticket List UI LEFT: OPEN REQUESTS -->
+
+                        <!-- LEFT -->
                         <div class="open-requests">
 
-                            <!-- HEADER -->
                             <div class="open-requests__header">
-                                <h2 class="open-requests__title">Open Requests</h2>
+                                <h2>Open Requests</h2>
 
-                                <select class="select" id="sort-select">
+                                <select id="sort-select" class="select">
                                     <option value="Latest">Latest</option>
                                     <option value="Oldest">Oldest</option>
                                     <option value="Priority">Priority</option>
                                 </select>
-                                <select class="select" id="sort-select">
-                                    <option data-category="All">All</option>
-                                    <option data-category="Technical">Technical</option>
-                                    <option data-category="Billing">Billing</option>
-                                    <option data-category="General">General</option>
+
+                                <select id="category-filter" class="select">
+                                    <option value="All">All</option>
+                                    <option value="Technical">Technical</option>
+                                    <option value="Billing">Billing</option>
+                                    <option value="General">General</option>
                                 </select>
-                                <select class="select" id="sort-select">
-                                    <option data-assignee="All">All</option>
-                                    <option data-assignee="Admin">Admin</option>
-                                    <option data-assignee="Support">Support</option>
+
+                                <select id="assignee-filter" class="select">
+                                    <option value="All">All</option>
+                                    <option value="Admin">Admin</option>
+                                    <option value="Support">Support</option>
                                 </select>
                             </div>
 
-                            <!-- FILTERS -->
                             <div class="open-requests__filters">
                                 <button class="filter-btn active" data-filter="All">All</button>
                                 <button class="filter-btn" data-filter="New">New</button>
@@ -157,244 +155,156 @@
                                 <button class="filter-btn" data-filter="Resolved">Resolved</button>
                             </div>
 
-                            <!-- LIST -->
-                            <div class="open-requests__list">
+                            <!-- JS WILL RENDER HERE -->
+                            <div id="ticket-list"></div>
 
-                                <!-- Ticket Item -->
-                                <div class="ticket-item">
-                                    <div class="ticket-item__top">
-                                        <span>#SD-1024</span>
-                                        <span class="badge ${ticket.status.toLowerCase()}">${ticket.status}</span>
-                                    </div>
-
-                                    <h3 class="ticket-title">Login issue after password reset</h3>
-
-                                    <p class="ticket-meta">
-                                        Sarah Ahmed • Billing • 10 min ago
-                                    </p>
-
-                                    <span class="status new">New</span>
-                                </div>
-
-                            </div>
-                            <div class="pagination">
-                                <button id="prev-page">Prev</button>
-                                <span id="page-info">Page 1</span>
-                                <button id="next-page">Next</button>
-                            </div>
                         </div>
 
-                        <!-- RIGHT: TICKET DETAIL PANEL -->
-                        <div class="ticket-detail">
+                        <!-- RIGHT -->
+                        <div class="ticket-detail hidden" id="ticket-detail">
                             <div class="ticket-detail__header">
                                 <h2>Ticket Detail</h2>
-                                <span class="ticket-detail__close">✕</span>
+                                <button class="ticket-detail__close">✕</button>
                             </div>
 
                             <div class="ticket-detail__body">
                                 <div class="ticket-info">
-                                    <p id="detail-id" class="ticket-id">#SD-1024</p>
-                                    <h3 id="detail-title" class="ticket-detail-title">Login issue after password reset
-                                    </h3>
-                                    <p id="detail-meta" class="ticket-meta">Sarah Ahmed • Billing • 10 min ago</p>
+                                    <p id="detail-id" class="ticket-id"></p>
+                                    <h3 id="detail-title" class="ticket-detail-title"></h3>
+                                    <p id="detail-meta" class="ticket-meta"></p>
                                 </div>
 
                                 <div class="ticket-section">
                                     <p class="section-label">Status</p>
                                     <select id="detail-status" class="select">
-                                        <option>New</option>
-                                        <option>In Progress</option>
-                                        <option>Waiting</option>
-                                        <option>Resolved</option>
+                                        <option value="New">New</option>
+                                        <option value="In Progress">In Progress</option>
+                                        <option value="Waiting">Waiting</option>
+                                        <option value="Resolved">Resolved</option>
                                     </select>
                                 </div>
 
                                 <div class="ticket-section">
                                     <p class="section-label">Activity</p>
-                                    <ul id="detail-activity" class="activity-list">
-                                        <li>Ticket created</li>
-                                        <li>Priority marked urgent</li>
-                                        <li>Assigned to Support Queue</li>
-                                    </ul>
+                                    <ul id="detail-activity" class="activity-list"></ul>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button type="button" id="edit-ticket-btn" class="btn-secondary">Edit</button>
+                                    <button type="button" id="delete-ticket-btn" class="btn-danger">Delete</button>
                                 </div>
                             </div>
-                            <button id="edit-ticket-btn">Edit</button>
-                            <button id="delete-ticket-btn">Delete</button>
                         </div>
+
+                    </div>
+
                 </section>
 
 
+                <!-- KANBAN -->
+                <section id="view-kanban" class="view">
+                    <h1 class="page-title">Kanban Board</h1>
 
-                <!-- ACTIVITY VIEW -->
-                <div id="view-activity" class="view">
-                    <div class="page-header">
-                        <h1>Activity</h1>
-                        <p>Recent ticket activity</p>
+                    <div class="kanban-board">
+                        <div class="kanban-column" data-status="New">
+                            <h3>New</h3>
+                            <div class="kanban-list" id="kanban-new"></div>
+                        </div>
+
+                        <div class="kanban-column" data-status="In Progress">
+                            <h3>In Progress</h3>
+                            <div class="kanban-list" id="kanban-progress"></div>
+                        </div>
+
+                        <div class="kanban-column" data-status="Waiting">
+                            <h3>Waiting</h3>
+                            <div class="kanban-list" id="kanban-waiting"></div>
+                        </div>
+
+                        <div class="kanban-column" data-status="Resolved">
+                            <h3>Resolved</h3>
+                            <div class="kanban-list" id="kanban-resolved"></div>
+                        </div>
                     </div>
-
-                    <div id="activity-list" class="activity-list"></div>
-                </div>
+                </section>
 
 
-                <!-- REPORTS VIEW -->
-                <div id="view-reports" class="view">
+                <!-- ACTIVITY -->
+                <section id="view-activity" class="view">
+                    <h1 class="page-title">Activity</h1>
+                    <p class="page-subtitle">Recent ticket activity</p>
+                    <div id="activity-list"></div>
+                </section>
 
+
+                <!-- REPORTS -->
+                <section id="view-reports" class="view">
                     <h1 class="page-title">Reports</h1>
                     <p class="page-subtitle">Ticket analytics overview</p>
 
-                    <!-- SUMMARY -->
                     <div class="report-grid">
-
                         <div class="report-card">
                             <h4>Total</h4>
                             <p id="report-total"></p>
                         </div>
-
                         <div class="report-card">
                             <h4>New</h4>
                             <p id="report-new"></p>
                         </div>
-
                         <div class="report-card">
                             <h4>In Progress</h4>
                             <p id="report-progress"></p>
                         </div>
-
                         <div class="report-card">
                             <h4>Resolved</h4>
                             <p id="report-resolved"></p>
                         </div>
-
                     </div>
 
-                    <!-- STATUS BAR -->
-                    <div class="settings-card">
-                        <h3>Status Distribution</h3>
-
-                        <div class="bar">
-                            <span>New</span>
-                            <div class="bar-fill new" id="bar-new"></div>
-                        </div>
-
-                        <div class="bar">
-                            <span>In Progress</span>
-                            <div class="bar-fill progress" id="bar-progress"></div>
-                        </div>
-
-                        <div class="bar">
-                            <span>Resolved</span>
-                            <div class="bar-fill resolved" id="bar-resolved"></div>
-                        </div>
-                    </div>
-
-                    <div class="settings-card">
-                        <h3>Filter</h3>
-
-                        <select id="report-filter">
-                            <option value="all">All Time</option>
-                            <option value="7">Last 7 Days</option>
-                            <option value="30">Last 30 Days</option>
-                        </select>
-
-                    </div>
-                    <div class="settings-card">
-                        <h3>Status Chart</h3>
-                        <canvas id="statusChart"></canvas>
-                    </div>
-                    <!-- DEPARTMENT -->
-                    <div class="settings-card">
-                        <h3>Department Breakdown</h3>
-                        <div id="report-departments"></div>
-                    </div>
-
-                    <div class="settings-card">
-                        <h3>Tickets Over Time</h3>
-                        <div id="report-trend"></div>
-                    </div>
-                    <div class="settings-card">
-                        <h3>Top Status</h3>
-                        <p id="top-status"></p>
-                    </div>
-
-                    <div class="settings-card">
-                        <h3>Recent Activity</h3>
-                        <div id="report-activity"></div>
-                    </div>
-
-                </div>
+                    <canvas id="statusChart"></canvas>
+                </section>
 
 
-                <!-- SETTINGS VIEW -->
-                <div id="view-settings" class="view">
-                    <div class="settings-HEADING">
-                        <h1 class="page-title">Settings</h1>
-                        <p class="page-subtitle">Manage your application preferences</p>
-                    </div>
+                <!-- SETTINGS -->
+                <section id="view-settings" class="view">
+                    <h1 class="page-title">Settings</h1>
                     <div class="settings-item">
-                        <span>Theme</span>
-                        <button id="theme-toggle">Switch Theme</button>
+                        <label>Theme Mode</label>
+
+                        <div class="theme-toggle">
+                            <button id="theme-light" class="theme-btn">Light</button>
+                            <button id="theme-dark" class="theme-btn">Dark</button>
+                        </div>
                     </div>
-                    <!-- GENERAL -->
+
                     <div class="settings-card">
                         <h3>General</h3>
-
-                        <div class="settings-item">
-                            <span>Default Ticket Status</span>
-                            <select id="default-status">
-                                <option>New</option>
-                                <option>In Progress</option>
-                                <option>Waiting</option>
-                            </select>
-                        </div>
+                        <select id="default-status">
+                            <option>New</option>
+                            <option>In Progress</option>
+                            <option>Waiting</option>
+                        </select>
                     </div>
 
-                    <!-- DATA -->
-                    <div class="settings-card">
-                        <h3>Data Management</h3>
-
-                        <div class="settings-item">
-                            <span>Export Tickets</span>
-                            <button id="export-btn" class="btn-secondary">Export JSON</button>
-                        </div>
-
-                        <div class="settings-item">
-                            <span>Import Tickets</span>
-                            <input type="file" id="import-file" />
-                        </div>
-                    </div>
-
-                    <!-- DANGER -->
                     <div class="settings-card danger">
                         <h3>Danger Zone</h3>
-
-                        <div class="settings-item">
-                            <span>Clear all tickets permanently</span>
-                            <button id="clear-btn" class="btn-danger">Clear All</button>
-                        </div>
+                        <button id="clear-btn" class="btn-danger">Clear All</button>
                     </div>
+                </section>
 
-                    <!-- INFO -->
-                    <div class="settings-card">
-                        <h3>Application Info</h3>
+            </section>
 
-                        <div class="settings-info">
-                            <p><strong>Version:</strong> 1.0.0</p>
-                            <p><strong>Total Tickets:</strong> <span id="settings-total"></span></p>
-                        </div>
-                    </div>
-
-                </div>
-
-            </div>
         </div>
-    </div>
+    </main>
 
-    <!-- CREATE TICKET MODAL -->
-    <div class="modal hidden" id="ticket-modal">
+
+    <!-- MODAL -->
+    <div id="ticket-modal" class="modal hidden">
         <div class="modal-content">
+
             <div class="modal-header">
-                <h2>Create New Ticket</h2>
-                <span class="modal-close">✕</span>
+                <h2>Create Ticket</h2>
+                <button class="modal-close">✕</button>
             </div>
 
             <form id="ticket-form">
@@ -407,14 +317,15 @@
                     <label for="ticket-user">User Name</label>
                     <input type="text" id="ticket-user" placeholder="Enter user name" required>
                 </div>
-                <!-- ASSIGNEE -->
+
                 <div class="form-group">
                     <label for="ticket-assignee">Assignee</label>
                     <input type="text" id="ticket-assignee" placeholder="Assign to..." />
                 </div>
+
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Priority</label>
+                        <label for="ticket-priority">Priority</label>
                         <select id="ticket-priority">
                             <option value="Low">Low</option>
                             <option value="Medium">Medium</option>
@@ -423,7 +334,6 @@
                         </select>
                     </div>
 
-                    <!-- CATEGORY -->
                     <div class="form-group">
                         <label for="ticket-category">Category</label>
                         <select id="ticket-category">
@@ -432,8 +342,8 @@
                             <option value="General">General</option>
                         </select>
                     </div>
-
                 </div>
+
                 <div class="form-row">
                     <div class="form-group">
                         <label for="ticket-department">Department</label>
@@ -450,6 +360,7 @@
                             <option value="New">New</option>
                             <option value="In Progress">In Progress</option>
                             <option value="Waiting">Waiting</option>
+                            <option value="Resolved">Resolved</option>
                         </select>
                     </div>
                 </div>
@@ -460,30 +371,24 @@
                 </div>
 
                 <div class="form-actions">
-                    <button type="button" class="btn-secondary">Cancel</button>
-                    <button type="submit">Create Ticket</button>
+                    <button type="button" id="cancel-btn" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn--primary">Create Ticket</button>
                 </div>
             </form>
+
         </div>
     </div>
 
-    <!-- FOOTER -->
-    <footer class="footer">
-        <div class="container">
-            <div class="row">
-                <div class="footer__left">
-                    <p>© 2026 SupportDesk Pro</p>
-                </div>
 
-                <div class="footer__right">
-                    <a href="#">Privacy Policy</a>
-                    <a href="#">Terms</a>
-                </div>
-            </div>
+    <footer class="footer">
+        <div class="container row">
+            <p>© 2026 SupportDesk Pro</p>
         </div>
     </footer>
-    <script type="module" src="assets/js/app.js"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module" src="assets/js/app.js"></script>
+
 </body>
 
 </html>

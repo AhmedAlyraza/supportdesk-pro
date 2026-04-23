@@ -1,25 +1,38 @@
+import {
+  loadDefaultStatusFromStorage
+} from "./storage.js";
+
+// =========================
+// APP STATE
+// =========================
 export let tickets = [];
+export let activityLogs = [];
+
 export let selectedTicket = null;
 export let editingTicketId = null;
+export let draggedTicketId = null;
 
 export let currentFilter = "All";
+export let currentPriorityFilter = "All";
+export let currentCategoryFilter = "All";
+export let currentAssigneeFilter = "All";
 export let currentSort = "Latest";
 export let searchQuery = "";
 
 export let currentPage = 1;
 export const itemsPerPage = 5;
-export let currentPriorityFilter = "All";
-export let currentCategoryFilter = "All";
-export let currentAssigneeFilter = "All";
 
-export let defaultStatus = localStorage.getItem("defaultStatus") || "New";
-export function setDefaultStatus(status) {
-  defaultStatus = status;
-  localStorage.setItem("defaultStatus", status);
+export let defaultStatus = loadDefaultStatusFromStorage();
+
+// =========================
+// BASIC STATE SETTERS
+// =========================
+export function setTickets(loadedTickets) {
+  tickets = Array.isArray(loadedTickets) ? loadedTickets : [];
 }
 
-export function setTickets(loadedTickets) {
-  tickets = loadedTickets;
+export function setActivityLogs(logs) {
+  activityLogs = Array.isArray(logs) ? logs : [];
 }
 
 export function addTicket(ticket) {
@@ -30,80 +43,81 @@ export function setSelectedTicket(ticket) {
   selectedTicket = ticket;
 }
 
-export function getTicketById(id) {
-  return tickets.find(ticket => ticket.id === id);
+export function setEditingTicket(id) {
+  editingTicketId = id;
 }
 
-// Update ticket status in state
-export function updateTicketStatus(id, newStatus) {
-  const ticket = tickets.find(t => t.id === id);
-
-  if (ticket) {
-
-    // ❗ Prevent duplicate logs
-    if (ticket.status === newStatus) return;
-
-    ticket.status = newStatus;
-
-    if (!ticket.activity) ticket.activity = [];
-
-    ticket.activity.push(`Status changed to ${newStatus}`);
-
-    if (ticket.activity.length > 10) {
-      ticket.activity.shift(); // remove oldest entry
-    }
-  }
+export function setDraggedTicketId(id) {
+  draggedTicketId = id;
 }
 
-
-// set filter
 export function setFilter(filter) {
   currentFilter = filter;
+  currentPage = 1;
 }
 
+export function setPriorityFilter(value) {
+  currentPriorityFilter = value;
+  currentPage = 1;
+}
+
+export function setCategoryFilter(value) {
+  currentCategoryFilter = value;
+  currentPage = 1;
+}
+
+export function setAssigneeFilter(value) {
+  currentAssigneeFilter = value;
+  currentPage = 1;
+}
 
 export function setSort(sort) {
   currentSort = sort;
 }
 
 export function setSearchQuery(query) {
-  searchQuery = query.toLowerCase();
-}
-
-export function deleteTicket(id) {
-  tickets = tickets.filter(t => t.id !== id);
+  searchQuery = String(query || "").toLowerCase();
+  currentPage = 1;
 }
 
 export function setPage(page) {
   currentPage = page;
 }
 
-export function setEditingTicket(id) {
-  editingTicketId = id;
+export function setDefaultStatus(status) {
+  defaultStatus = status;
 }
 
+// =========================
+// TICKET HELPERS
+// =========================
+export function getTicketById(id) {
+  return tickets.find(ticket => ticket.id === id);
+}
+
+export function deleteTicket(id) {
+  const index = tickets.findIndex(ticket => ticket.id === id);
+
+  if (index === -1) return null;
+
+  const [deletedTicket] = tickets.splice(index, 1);
+  return deletedTicket;
+}
 
 export function generateTicketId() {
   if (tickets.length === 0) return "#SD-1001";
 
-  const numbers = tickets.map(t =>
-    parseInt(t.id.replace("#SD-", ""), 10)
-  );
+  const numbers = tickets
+    .map(ticket => parseInt(String(ticket.id).replace("#SD-", ""), 10))
+    .filter(num => !Number.isNaN(num));
 
-  const max = Math.max(...numbers);
-
-  return "#SD-" + (max + 1);
+  const max = numbers.length ? Math.max(...numbers) : 1000;
+  return `#SD-${max + 1}`;
 }
 
-
-export function setPriorityFilter(val) {
-  currentPriorityFilter = val;
-}
-
-export function setCategoryFilter(val) {
-  currentCategoryFilter = val;
-}
-
-export function setAssigneeFilter(val) {
-  currentAssigneeFilter = val;
+// =========================
+// GLOBAL ACTIVITY
+// =========================
+export function addGlobalActivity(log) {
+  activityLogs.unshift(log);
 }

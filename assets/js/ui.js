@@ -1,5 +1,6 @@
 import {
   tickets,
+  activityLogs,
   selectedTicket,
   currentFilter,
   currentPriorityFilter,
@@ -12,64 +13,36 @@ import {
   defaultStatus
 } from "./state.js";
 
-
-//  Dashboard Stats Renderer
-export function renderDashboardStats(tickets) {
-
-  const totalEl = document.getElementById("total-count");
-  const openEl = document.getElementById("open-count");
-  const progressEl = document.getElementById("progress-count");
-  const resolvedEl = document.getElementById("resolved-count");
-
-  // 🔥 SAFETY CHECK (VERY IMPORTANT)
-  if (!totalEl || !openEl || !progressEl || !resolvedEl) {
-    return; // dashboard not visible → skip
-  }
-
-  const total = tickets.length;
-  const open = tickets.filter(t => t.status === "New").length;
-  const progress = tickets.filter(t => t.status === "In Progress").length;
-  const resolved = tickets.filter(t => t.status === "Resolved").length;
-
-  totalEl.textContent = total;
-  openEl.textContent = open;
-  progressEl.textContent = progress;
-  resolvedEl.textContent = resolved;
-}
-
-
-// ================= SIDEBAR ================= //
+// =========================
+// SIDEBAR
+// =========================
 export function setActiveSidebar(item) {
   const sidebarItems = document.querySelectorAll(".sidebar_item");
 
-  sidebarItems.forEach((el) => {
+  sidebarItems.forEach(el => {
     el.classList.remove("sidebar_item-active");
   });
 
   item.classList.add("sidebar_item-active");
 }
 
-
-// ================= VIEW SWITCH =================
+// =========================
+// VIEW SWITCHING
+// =========================
 export function switchView(viewName) {
-
   const views = document.querySelectorAll(".view");
 
-  views.forEach(v => v.classList.remove("active"));
+  views.forEach(view => view.classList.remove("active"));
 
   const target = document.getElementById(`view-${viewName}`);
+  if (target) target.classList.add("active");
 
-  if (target) {
-    target.classList.add("active");
-  }
-
-  // 🔥 FIX: render dashboard ONLY when visible
   if (viewName === "dashboard") {
     renderDashboardStats(tickets);
   }
 
   if (viewName === "activity") {
-    renderActivity(tickets);
+    renderActivity();
   }
 
   if (viewName === "reports") {
@@ -79,10 +52,15 @@ export function switchView(viewName) {
   if (viewName === "settings") {
     renderSettingsStats();
   }
+
+  if (viewName === "kanban") {
+    renderKanban(tickets);
+  }
 }
 
-
-// ================= MODAL =================
+// =========================
+// MODAL
+// =========================
 export function openModal(modal) {
   modal.classList.remove("hidden");
 }
@@ -91,51 +69,72 @@ export function closeModal(modal) {
   modal.classList.add("hidden");
 }
 
+// =========================
+// DASHBOARD
+// =========================
+export function renderDashboardStats(allTickets) {
+  const totalEl = document.getElementById("total-count");
+  const openEl = document.getElementById("open-count");
+  const progressEl = document.getElementById("progress-count");
+  const resolvedEl = document.getElementById("resolved-count");
 
-// ================= MAIN RENDER =================
+  if (!totalEl || !openEl || !progressEl || !resolvedEl) return;
+
+  const total = allTickets.length;
+  const open = allTickets.filter(t => t.status === "New").length;
+  const progress = allTickets.filter(t => t.status === "In Progress").length;
+  const resolved = allTickets.filter(t => t.status === "Resolved").length;
+
+  totalEl.textContent = total;
+  openEl.textContent = open;
+  progressEl.textContent = progress;
+  resolvedEl.textContent = resolved;
+}
+
+// =========================
+// TICKETS LIST
+// =========================
 export function renderTickets() {
-  const list = document.querySelector(".open-requests__list");
+  const list = document.getElementById("ticket-list");
   const pageInfo = document.getElementById("page-info");
+  const pagination = document.querySelector(".pagination");
 
   if (!list) return;
 
   list.innerHTML = "";
 
-  // ================= 1. FILTER =================
   let filteredTickets = currentFilter === "All"
     ? [...tickets]
-    : tickets.filter(t => t.status === currentFilter);
+    : tickets.filter(ticket => ticket.status === currentFilter);
+
   if (currentPriorityFilter !== "All") {
-    filteredTickets = filteredTickets.filter(
-      t => t.priority === currentPriorityFilter
-    );
+    filteredTickets = filteredTickets.filter(ticket => ticket.priority === currentPriorityFilter);
   }
+
   if (currentCategoryFilter !== "All") {
-    filteredTickets = filteredTickets.filter(
-      t => t.category === currentCategoryFilter
-    );
+    filteredTickets = filteredTickets.filter(ticket => ticket.category === currentCategoryFilter);
   }
 
   if (currentAssigneeFilter !== "All") {
-    filteredTickets = filteredTickets.filter(
-      t => t.assignee === currentAssigneeFilter
-    );
+    filteredTickets = filteredTickets.filter(ticket => ticket.assignee === currentAssigneeFilter);
   }
-  // ================= 2. SEARCH =================
+
   if (searchQuery) {
     filteredTickets = filteredTickets.filter(ticket =>
       ticket.title.toLowerCase().includes(searchQuery) ||
       ticket.user.toLowerCase().includes(searchQuery) ||
-      ticket.department.toLowerCase().includes(searchQuery)
+      ticket.department.toLowerCase().includes(searchQuery) ||
+      ticket.id.toLowerCase().includes(searchQuery) ||
+      (ticket.assignee || "").toLowerCase().includes(searchQuery) ||
+      (ticket.category || "").toLowerCase().includes(searchQuery)
     );
   }
 
-  // ================= 3. SORT =================
   const priorityOrder = {
-    "Urgent": 4,
-    "High": 3,
-    "Medium": 2,
-    "Low": 1
+    Urgent: 4,
+    High: 3,
+    Medium: 2,
+    Low: 1
   };
 
   if (currentSort === "Latest") {
@@ -148,38 +147,38 @@ export function renderTickets() {
     );
   }
 
-  // ================= 4. EMPTY STATE (FIXED POSITION) =================
   if (filteredTickets.length === 0) {
     list.innerHTML = `
       <div class="empty-state">
-        <p>No tickets found</p>
+        <h3>No tickets found</h3>
+        <p>Try changing your filters or create a new ticket.</p>
       </div>
     `;
+
+    if (pagination) pagination.classList.add("hidden");
     return;
   }
 
   const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
+  const safePage = Math.min(currentPage, totalPages);
+  const start = (safePage - 1) * itemsPerPage;
+  const end = start + itemsPerPage;
+  const paginatedTickets = filteredTickets.slice(start, end);
+
+  if (pagination) {
+    if (filteredTickets.length <= itemsPerPage) {
+      pagination.classList.add("hidden");
+    } else {
+      pagination.classList.remove("hidden");
+    }
+  }
 
   const nextBtn = document.getElementById("next-page");
   const prevBtn = document.getElementById("prev-page");
 
-  if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
-  if (prevBtn) prevBtn.disabled = currentPage <= 1;
+  if (nextBtn) nextBtn.disabled = safePage >= totalPages;
+  if (prevBtn) prevBtn.disabled = safePage <= 1;
 
-  // ================= 5. PAGINATION =================
-  const start = (currentPage - 1) * itemsPerPage;
-  const end = start + itemsPerPage;
-
-  const paginatedTickets = filteredTickets.slice(start, end);
-
-  // ================= 6. RENDER =================
-  const pagination = document.querySelector(".pagination");
-
-  if (filteredTickets.length <= itemsPerPage) {
-    pagination?.classList.add("hidden");
-  } else {
-    pagination?.classList.remove("hidden");
-  }
   paginatedTickets.forEach(ticket => {
     const item = document.createElement("div");
     item.className = "ticket-item";
@@ -189,73 +188,115 @@ export function renderTickets() {
       item.classList.add("active");
     }
 
-
     item.innerHTML = `
-  <div class="ticket-item__top">
-    <span>${ticket.id}</span>
-    <span class="badge ${ticket.status.replace(" ", "-").toLowerCase()}">
-      ${ticket.status}
-    </span>
-  </div>
+      <div class="ticket-item__top">
+        <span>${ticket.id}</span>
+        <span class="badge ${ticket.status.replace(" ", "-").toLowerCase()}">
+          ${ticket.status}
+        </span>
+      </div>
 
-  <h3 class="ticket-title">${ticket.title}</h3>
-  <p class="ticket-meta">${ticket.user} • ${ticket.department}</p>
-  <p class="ticket-extra">
-    ${ticket.category || "General"} • ${ticket.assignee || "Unassigned"}
-   </p> 
+      <h3 class="ticket-title">${ticket.title}</h3>
+      <p class="ticket-meta">${ticket.user} • ${ticket.department}</p>
+      <p class="ticket-extra">${ticket.category || "General"} • ${ticket.assignee || "Unassigned"}</p>
 
-  <div class="ticket-item__bottom">
-    <span class="priority ${ticket.priority ? ticket.priority.toLowerCase() : "low"}">
-      ${ticket.priority || "Low"}
-    </span>
-  </div>
-`;
+      <div class="ticket-item__bottom">
+        <span class="priority ${(ticket.priority || "Low").toLowerCase()}">
+          ${ticket.priority || "Low"}
+        </span>
+      </div>
+    `;
 
     list.appendChild(item);
   });
 
-  // ================= 7. PAGE INFO =================
   if (pageInfo) {
-    const totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
-    pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+    pageInfo.textContent = `Page ${safePage} of ${totalPages}`;
   }
 }
 
-
-// ================= DETAIL PANEL =================
+// =========================
+// DETAIL PANEL
+// =========================
 export function renderTicketDetail(ticket) {
-  const editBtn = document.getElementById("edit-ticket-btn");
-  if (editBtn) editBtn.dataset.id = ticket.id;
-  if (!ticket) return;
-
   const detailId = document.getElementById("detail-id");
   const detailTitle = document.getElementById("detail-title");
   const detailMeta = document.getElementById("detail-meta");
   const detailStatus = document.getElementById("detail-status");
   const detailActivity = document.getElementById("detail-activity");
+  const editBtn = document.getElementById("edit-ticket-btn");
+  const deleteBtn = document.getElementById("delete-ticket-btn");
 
-  if (detailId) detailId.textContent = ticket.id;
-  if (detailTitle) detailTitle.textContent = ticket.title;
-  if (detailMeta) detailMeta.textContent = `${ticket.user} • ${ticket.department}`;
-  if (detailStatus) detailStatus.value = ticket.status;
+  if (!detailId || !detailTitle || !detailMeta || !detailStatus || !detailActivity) return;
 
-  if (detailActivity) {
+  if (!ticket) {
+    detailId.textContent = "";
+    detailTitle.textContent = "No ticket selected";
+    detailMeta.textContent = "";
     detailActivity.innerHTML = "";
-
-    const activities = ticket.activity && ticket.activity.length
-      ? ticket.activity
-      : ["Ticket created"];
-
-    activities.forEach(entry => {
-      const li = document.createElement("li");
-      li.textContent = entry;
-      detailActivity.appendChild(li);
-    });
+    if (editBtn) delete editBtn.dataset.id;
+    if (deleteBtn) delete deleteBtn.dataset.id;
+    return;
   }
 
+  detailId.textContent = ticket.id;
+  detailTitle.textContent = ticket.title;
+  detailMeta.textContent = `${ticket.user} • ${ticket.department} • ${ticket.category || "General"} • ${ticket.assignee || "Unassigned"}`;
 
+  detailStatus.innerHTML = `
+    <option value="New">New</option>
+    <option value="In Progress">In Progress</option>
+    <option value="Waiting">Waiting</option>
+    <option value="Resolved">Resolved</option>
+  `;
+  detailStatus.value = ticket.status;
+
+  detailActivity.innerHTML = "";
+
+  const activities = Array.isArray(ticket.activity) ? ticket.activity : [];
+
+  if (!activities.length) {
+    detailActivity.innerHTML = `<li>No activity yet</li>`;
+  } else {
+    activities
+      .slice()
+      .reverse()
+      .forEach(entry => {
+        const li = document.createElement("li");
+        li.textContent = buildTicketActivityText(entry);
+        detailActivity.appendChild(li);
+      });
+  }
+
+  if (editBtn) editBtn.dataset.id = ticket.id;
+  if (deleteBtn) deleteBtn.dataset.id = ticket.id;
 }
 
+function buildTicketActivityText(entry) {
+  if (!entry || typeof entry !== "object") return "Unknown activity";
+
+  if (entry.type === "create") {
+    return `Ticket created with status ${entry.to}`;
+  }
+
+  if (entry.type === "status") {
+    return `Status changed from ${entry.from} to ${entry.to}`;
+  }
+
+  if (entry.type === "update") {
+    return "Ticket details updated";
+  }
+
+  if (entry.type === "delete") {
+    return "Ticket deleted";
+  }
+
+  return entry.message || "Activity updated";
+}
+
+// =========================
+// FILTER BUTTONS
+// =========================
 export function setActiveFilterButton(filter) {
   const buttons = document.querySelectorAll(".filter-btn");
 
@@ -268,50 +309,40 @@ export function setActiveFilterButton(filter) {
   });
 }
 
-
-
-
-
-export function renderActivity(tickets) {
+// =========================
+// ACTIVITY PAGE
+// =========================
+export function renderActivity() {
   const container = document.getElementById("activity-list");
   if (!container) return;
 
   container.innerHTML = "";
 
-  let logs = [];
+  if (!activityLogs.length) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <h3>No activity yet</h3>
+        <p>Ticket actions will appear here.</p>
+      </div>
+    `;
+    return;
+  }
 
-  tickets.forEach(ticket => {
-    if (ticket.activity) {
-      ticket.activity.forEach(entry => {
-        logs.push({
-          ...entry,
-          ticketId: ticket.id,
-          ticketTitle: ticket.title
-        });
-      });
-    }
-  });
-
-  // 🔥 SORT latest first
-  logs.sort((a, b) => b.time - a.time);
-
-  logs.forEach(log => {
+  activityLogs.forEach(log => {
     const div = document.createElement("div");
-    div.className = `activity-item activity-${log.type}`;
+    div.className = `activity-item activity-${log.type || "info"}`;
 
     const date = log.time ? new Date(log.time) : null;
-
     const formatted = date
       ? date.toLocaleString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit"
-      })
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit"
+        })
       : "Unknown time";
 
-    // 🔥 SMART MESSAGE BUILDER
     let messageHTML = "";
 
     if (log.type === "status") {
@@ -324,37 +355,36 @@ export function renderActivity(tickets) {
           <span class="status-badge new">${log.to}</span>
         </p>
       `;
-    }
-    else if (log.type === "create") {
+    } else if (log.type === "create") {
       messageHTML = `
         <p class="activity-title">${log.ticketTitle}</p>
         <p class="activity-text">
-          Ticket created with status 
+          Ticket created with status
           <span class="status-badge new">${log.to}</span>
         </p>
       `;
-    }
-    else if (log.type === "update") {
+    } else if (log.type === "update") {
       messageHTML = `
         <p class="activity-title">${log.ticketTitle}</p>
         <p class="activity-text">Ticket details updated</p>
       `;
-    }
-    else if (log.type === "delete") {
+    } else if (log.type === "delete") {
       messageHTML = `
         <p class="activity-title">${log.ticketTitle}</p>
         <p class="activity-text danger">Ticket deleted</p>
       `;
+    } else {
+      messageHTML = `
+        <p class="activity-title">${log.ticketTitle || "Unknown ticket"}</p>
+        <p class="activity-text">${log.message || "Activity updated"}</p>
+      `;
     }
 
     div.innerHTML = `
-      <div class="activity-dot"></div>
-
       <div class="activity-content">
         ${messageHTML}
-
         <div class="activity-footer">
-          <span>${log.ticketId}</span>
+          <span>${log.ticketId || ""}</span>
           <span>${formatted}</span>
         </div>
       </div>
@@ -364,153 +394,117 @@ export function renderActivity(tickets) {
   });
 }
 
-export function renderReports(tickets) {
+// =========================
+// REPORTS
+// =========================
+export function renderReports(allTickets) {
+  const total = allTickets.length;
+  const newCount = allTickets.filter(t => t.status === "New").length;
+  const progress = allTickets.filter(t => t.status === "In Progress").length;
+  const resolved = allTickets.filter(t => t.status === "Resolved").length;
 
-  const total = tickets.length;
-  const newCount = tickets.filter(t => t.status === "New").length;
-  const progress = tickets.filter(t => t.status === "In Progress").length;
-  const resolved = tickets.filter(t => t.status === "Resolved").length;
+  const totalEl = document.getElementById("report-total");
+  const newEl = document.getElementById("report-new");
+  const progressEl = document.getElementById("report-progress");
+  const resolvedEl = document.getElementById("report-resolved");
 
-  // ===== SUMMARY =====
-  document.getElementById("report-total").textContent = total;
-  document.getElementById("report-new").textContent = newCount;
-  document.getElementById("report-progress").textContent = progress;
-  document.getElementById("report-resolved").textContent = resolved;
+  if (totalEl) totalEl.textContent = total;
+  if (newEl) newEl.textContent = newCount;
+  if (progressEl) progressEl.textContent = progress;
+  if (resolvedEl) resolvedEl.textContent = resolved;
 
-  // ===== BARS =====
-  const calc = (value) => total ? (value / total) * 100 : 0;
+  const calc = value => total ? (value / total) * 100 : 0;
 
-  document.getElementById("bar-new").style.width = calc(newCount) + "%";
-  document.getElementById("bar-progress").style.width = calc(progress) + "%";
-  document.getElementById("bar-resolved").style.width = calc(resolved) + "%";
+  const barNew = document.getElementById("bar-new");
+  const barProgress = document.getElementById("bar-progress");
+  const barResolved = document.getElementById("bar-resolved");
 
-  // ===== DEPARTMENTS =====
-  const container = document.getElementById("report-departments");
-  container.innerHTML = "";
+  if (barNew) barNew.style.width = `${calc(newCount)}%`;
+  if (barProgress) barProgress.style.width = `${calc(progress)}%`;
+  if (barResolved) barResolved.style.width = `${calc(resolved)}%`;
 
-  const deptMap = {};
+  const departmentContainer = document.getElementById("report-departments");
+  if (departmentContainer) {
+    departmentContainer.innerHTML = "";
 
-  tickets.forEach(t => {
-    deptMap[t.department] = (deptMap[t.department] || 0) + 1;
-  });
+    const deptMap = {};
+    allTickets.forEach(ticket => {
+      deptMap[ticket.department] = (deptMap[ticket.department] || 0) + 1;
+    });
 
-  Object.keys(deptMap).forEach(dept => {
-    const div = document.createElement("div");
-    div.className = "department-row";
+    Object.entries(deptMap).forEach(([dept, count]) => {
+      const div = document.createElement("div");
+      div.className = "department-row";
+      div.innerHTML = `<span>${dept}</span><strong>${count}</strong>`;
+      departmentContainer.appendChild(div);
+    });
+  }
 
-    div.innerHTML = `
-      <span>${dept}</span>
-      <strong>${deptMap[dept]}</strong>
-    `;
-
-    container.appendChild(div);
-  });
-
-
-  // ================= TREND =================
   const trendContainer = document.getElementById("report-trend");
   if (trendContainer) {
     trendContainer.innerHTML = "";
 
     const trendMap = {};
 
-    tickets.forEach(t => {
-      if (!t.createdAt) return;
+    allTickets.forEach(ticket => {
+      if (!ticket.createdAt) return;
 
-      const date = new Date(t.createdAt).toLocaleDateString("en-GB");
+      const date = new Date(ticket.createdAt).toLocaleDateString("en-GB");
       trendMap[date] = (trendMap[date] || 0) + 1;
     });
 
-    Object.keys(trendMap).forEach(date => {
-      const count = trendMap[date];
-
+    Object.entries(trendMap).forEach(([date, count]) => {
       const div = document.createElement("div");
       div.className = "trend-row";
-
       div.innerHTML = `
-      <span>${date}</span>
-      <div style="width:60%">
-        <div class="trend-bar" style="width:${count * 20}px"></div>
-      </div>
-      <strong>${count}</strong>
-    `;
-
+        <span>${date}</span>
+        <div style="width:60%">
+          <div class="trend-bar" style="width:${count * 20}px"></div>
+        </div>
+        <strong>${count}</strong>
+      `;
       trendContainer.appendChild(div);
     });
   }
 
-
-  // ================= TOP STATUS =================
   const topStatusEl = document.getElementById("top-status");
-
   if (topStatusEl) {
     let top = "None";
     let max = 0;
 
     const statusMap = {
-      "New": tickets.filter(t => t.status === "New").length,
-      "In Progress": tickets.filter(t => t.status === "In Progress").length,
-      "Resolved": tickets.filter(t => t.status === "Resolved").length
+      New: newCount,
+      "In Progress": progress,
+      Resolved: resolved
     };
 
-    Object.keys(statusMap).forEach(s => {
-      if (statusMap[s] > max) {
-        max = statusMap[s];
-        top = s;
+    Object.entries(statusMap).forEach(([status, count]) => {
+      if (count > max) {
+        max = count;
+        top = status;
       }
     });
 
     topStatusEl.textContent = `${top} (${max})`;
   }
 
-
-  // ================= RECENT ACTIVITY =================
   const activityContainer = document.getElementById("report-activity");
-
   if (activityContainer) {
     activityContainer.innerHTML = "";
 
-    let logs = [];
-
-    tickets.forEach(t => {
-      if (t.activity) {
-        t.activity.forEach(a => {
-          if (a.time && a.message) {
-            logs.push({
-              ticket: t.id,
-              message: a.message,
-              time: a.time
-            });
-          }
-        });
-      }
-    });
-
-    logs.sort((a, b) => b.time - a.time);
-
-    logs.slice(0, 5).forEach(log => {
+    activityLogs.slice(0, 5).forEach(log => {
       const div = document.createElement("div");
       div.className = "department-row";
-
       div.innerHTML = `
-      <span>${log.message}</span>
-      <small>${log.ticket}</small>
-    `;
-
+        <span>${log.message || log.type}</span>
+        <small>${log.ticketId || ""}</small>
+      `;
       activityContainer.appendChild(div);
     });
   }
 
-
   const ctx = document.getElementById("statusChart");
-
-  if (ctx) {
-
-    const newCount = tickets.filter(t => t.status === "New").length;
-    const progress = tickets.filter(t => t.status === "In Progress").length;
-    const resolved = tickets.filter(t => t.status === "Resolved").length;
-
-    // destroy old chart (IMPORTANT)
+  if (ctx && window.Chart) {
     if (window.statusChartInstance) {
       window.statusChartInstance.destroy();
     }
@@ -521,18 +515,14 @@ export function renderReports(tickets) {
         labels: ["New", "In Progress", "Resolved"],
         datasets: [{
           data: [newCount, progress, resolved],
-          backgroundColor: [
-            "#3b82f6",
-            "#f59e0b",
-            "#22c55e"
-          ]
+          backgroundColor: ["#3b82f6", "#f59e0b", "#22c55e"]
         }]
       },
       options: {
         plugins: {
           legend: {
             labels: {
-              color: "#fff"
+              color: "#ffffff"
             }
           }
         }
@@ -541,15 +531,47 @@ export function renderReports(tickets) {
   }
 }
 
+// =========================
+// SETTINGS
+// =========================
 export function renderSettingsStats() {
   const el = document.getElementById("settings-total");
-  if (el) el.textContent = tickets.length;
-}
-
-document.addEventListener("DOMContentLoaded", () => {
   const dropdown = document.getElementById("default-status");
 
-  if (dropdown) {
-    dropdown.value = defaultStatus;
-  }
-});
+  if (el) el.textContent = tickets.length;
+  if (dropdown) dropdown.value = defaultStatus;
+}
+
+// =========================
+// KANBAN
+// =========================
+export function renderKanban(allTickets) {
+  const columns = {
+    New: document.getElementById("kanban-new"),
+    "In Progress": document.getElementById("kanban-progress"),
+    Waiting: document.getElementById("kanban-waiting"),
+    Resolved: document.getElementById("kanban-resolved")
+  };
+
+  Object.values(columns).forEach(col => {
+    if (col) col.innerHTML = "";
+  });
+
+  allTickets.forEach(ticket => {
+    const card = document.createElement("div");
+    card.className = "kanban-card";
+    card.draggable = true;
+    card.dataset.id = ticket.id;
+
+    card.innerHTML = `
+      <div class="kanban-card-header">
+        <strong>${ticket.title}</strong>
+        <span class="status-dot ${ticket.status.replace(" ", "-").toLowerCase()}"></span>
+      </div>
+      <p>${ticket.user}</p>
+    `;
+
+    const column = columns[ticket.status];
+    if (column) column.appendChild(card);
+  });
+}

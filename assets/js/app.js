@@ -11,13 +11,20 @@ import {
   initPaginationEvents,
   initDashboardCardEvents,
   initSettingsEvents,
-  initPriorityFilterEvents
+  initCategoryFilterEvents,
+  initAssigneeFilterEvents,
+  initReportFilterEvents,
+  initKanbanEvents
 } from "./events.js";
 
 import {
   renderTickets,
   renderTicketDetail,
-  renderDashboardStats
+  renderDashboardStats,
+  renderActivity,
+  renderReports,
+  renderSettingsStats,
+  renderKanban
 } from "./ui.js";
 
 import {
@@ -28,56 +35,76 @@ import {
 import {
   tickets,
   setTickets,
-  setSelectedTicket,
-  currentPriorityFilter,
-  currentCategoryFilter,
-  currentAssigneeFilter,
+  setActivityLogs,
+  setSelectedTicket
 } from "./state.js";
 
-import { loadTicketsFromStorage } from "./storage.js";
+import {
+  loadTicketsFromStorage,
+  loadActivityFromStorage,
+  loadThemeFromStorage
+} from "./storage.js";
 
 document.addEventListener("DOMContentLoaded", () => {
+  // =========================
+  // THEME
+  // =========================
+  const savedTheme = loadThemeFromStorage();
 
-  const savedTheme = localStorage.getItem("theme");
+  document.body.classList.remove("dark", "light");
+  document.body.classList.add(savedTheme === "light" ? "light" : "dark");
 
-if (savedTheme === "dark") {
-  document.body.classList.add("dark");
-}
-  // Load saved tickets first
-  const storedTickets = loadTicketsFromStorage() || [];
+  // =========================
+  // STORAGE LOAD
+  // =========================
+  const storedTickets = loadTicketsFromStorage();
+  const storedActivity = loadActivityFromStorage();
+
   setTickets(storedTickets);
+  setActivityLogs(storedActivity);
 
-  // Initial render
+  // =========================
+  // INITIAL RENDER
+  // =========================
   renderTickets();
   renderDashboardStats(tickets);
-  // Init all event systems
+  renderActivity();
+  renderReports(tickets);
+  renderSettingsStats();
+  renderKanban(tickets);
+
+  // =========================
+  // INIT EVENTS
+  // =========================
   initSidebarEvents();
   initModalEvents();
   initTicketEvents();
   initDetailEvents();
-
   initStatusEvents();
   initFilterEvents();
-
   initSortEvents();
   initSearchEvents();
-
   initDeleteEvents();
   initPaginationEvents();
   initDashboardCardEvents();
-  initPriorityFilterEvents();
+  initSettingsEvents();
   initCategoryFilterEvents();
   initAssigneeFilterEvents();
-  initSettingsEvents();
-  if (tickets.length > 0) {
-    setSelectedTicket(tickets[0]);
-    renderTicketDetail(tickets[0]);
-  }
+  initReportFilterEvents();
+  initKanbanEvents();
 
-  // ✅ IMPORTANT FIX (default state)
+  // =========================
+  // DETAIL PANEL DEFAULT
+  // =========================
   if (detailPanel && layout) {
     detailPanel.classList.add("hidden");
     layout.classList.add("no-detail");
   }
 
+  if (tickets.length > 0) {
+    setSelectedTicket(tickets[0]);
+    renderTicketDetail(tickets[0]);
+  } else {
+    renderTicketDetail(null);
+  }
 });
